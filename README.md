@@ -2,21 +2,6 @@
 
 A full-stack, enterprise-grade coding practice platform built based on the provided MySQL database schema and page designs.
 
----
-
-## 🌟 Live Applications
-- **Repository**: [https://github.com/bhardwaj045/Codexa](https://github.com/bhardwaj045/Codexa)
-- **Frontend URL**: [http://localhost:5173](http://localhost:5173)
-- **Backend API URL**: [http://localhost:8080](http://localhost:8080)
-- **H2 Database Console**: [http://localhost:8080/h2-console](http://localhost:8080/h2-console) (JDBC URL: `jdbc:h2:file:./data/codepractice`, User: `sa`, Password: empty)
-
----
-
-## 🔑 Pre-Configured Demo Accounts (1-Click Login available on UI)
-| Role | Email | Password |
-|---|---|---|
-| **Admin** | `anishbhardwaj377@gmail.com` | `admin124` |
-| **Student** | `student@codexa.com` | `student123` |
 
 ---
 
