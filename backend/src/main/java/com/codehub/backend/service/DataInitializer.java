@@ -17,7 +17,7 @@ import java.util.UUID;
 @Slf4j
 public class DataInitializer implements CommandLineRunner {
 
-        @org.springframework.beans.factory.annotation.Value("${app.admin.email:admin@codehub.com}")
+        @org.springframework.beans.factory.annotation.Value("${app.admin.email:admin@codexa.com}")
         private String adminEmail;
 
         @org.springframework.beans.factory.annotation.Value("${app.admin.password:admin123}")
@@ -42,32 +42,32 @@ public class DataInitializer implements CommandLineRunner {
                         return;
                 }
 
-                log.info("Seeding CoDingHub platform with 11 challenges and accounts...");
+                log.info("Seeding CodeXa platform with 11 challenges and accounts...");
 
                 // 1. Users
                 User admin = userRepository.findByEmail(adminEmail).orElseGet(() ->
                                 userRepository.findAll().stream().filter(u -> u.getUserRole() == UserRole.ADMIN).findFirst().orElse(null));
 
-                User student = userRepository.findByEmail("student@codehub.com")
+                User student = userRepository.findByEmail("student@codexa.com")
                                 .orElseGet(() -> userRepository.save(User.builder()
                                                 .name("Test Student")
-                                                .email("student@codehub.com")
+                                                .email("student@codexa.com")
                                                 .passwordHash(passwordEncoder.encode("student123"))
                                                 .userRole(UserRole.STUDENT)
                                                 .build()));
 
-                User priya = userRepository.findByEmail("priya@codehub.com")
+                User priya = userRepository.findByEmail("priya@codexa.com")
                                 .orElseGet(() -> userRepository.save(User.builder()
                                                 .name("Priya Sharma")
-                                                .email("priya@codehub.com")
+                                                .email("priya@codexa.com")
                                                 .passwordHash(passwordEncoder.encode("password123"))
                                                 .userRole(UserRole.STUDENT)
                                                 .build()));
 
-                User david = userRepository.findByEmail("david@codehub.com")
+                User david = userRepository.findByEmail("david@codexa.com")
                                 .orElseGet(() -> userRepository.save(User.builder()
                                                 .name("David Kim")
-                                                .email("david@codehub.com")
+                                                .email("david@codexa.com")
                                                 .passwordHash(passwordEncoder.encode("password123"))
                                                 .userRole(UserRole.STUDENT)
                                                 .build()));
@@ -291,7 +291,7 @@ public class DataInitializer implements CommandLineRunner {
                 leaderboardEntryRepository.save(LeaderboardEntry.builder().user(student).problemsSolved(0)
                                 .totalPoints(0).rankPosition(3).build());
 
-                log.info("CoDingHub platform seeded with exact 11 challenges successfully!");
+                log.info("CodeXa platform seeded with exact 11 challenges successfully!");
         }
 
         private void cleanupDemoSubmissions() {
@@ -302,7 +302,7 @@ public class DataInitializer implements CommandLineRunner {
                         submissionRepository.deleteAll(demoSubs);
                         log.info("Cleaned up {} legacy demo submissions.", demoSubs.size());
                 }
-                userRepository.findByEmail("student@codehub.com").ifPresent(student -> {
+                userRepository.findByEmail("student@codexa.com").ifPresent(student -> {
                         long actualSolved = submissionRepository.countSolvedDistinctProblemsByUser(student.getId(),
                                         SubmissionStatus.ACCEPTED);
                         leaderboardEntryRepository.findByUserId(student.getId()).ifPresent(e -> {
@@ -321,6 +321,7 @@ public class DataInitializer implements CommandLineRunner {
         }
 
         private void ensureStudentAccount() {
+                createOrUpdateStudent("student@codexa.com", "student123", "Test Student");
                 createOrUpdateStudent("student@codehub.com", "student123", "Test Student");
         }
 

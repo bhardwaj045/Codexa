@@ -56,7 +56,7 @@ export const AppLayout = ({ children, title }) => {
             &lt;/&gt;
           </div>
           <span className="text-xl font-bold tracking-tight text-slate-900">
-            CoDingHub
+            CodeXa
           </span>
         </Link>
 

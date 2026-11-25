@@ -413,7 +413,7 @@ export const ProblemDetailPage = () => {
             <div className="w-6 h-6 rounded bg-[#2CBB5D] text-white flex items-center justify-center font-mono font-bold text-xs shadow-xs">
               &lt;/&gt;
             </div>
-            <span className={`font-bold text-sm tracking-tight ${textHead}`}>CoDingHub</span>
+            <span className={`font-bold text-sm tracking-tight ${textHead}`}>CodeXa</span>
           </div>
         </div>
 

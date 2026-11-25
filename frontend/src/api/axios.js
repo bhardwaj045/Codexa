@@ -9,7 +9,7 @@ const api = axios.create({
 
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('codehub_token');
+    const token = localStorage.getItem('codexa_token') || localStorage.getItem('codehub_token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -23,7 +23,9 @@ api.interceptors.response.use(
   (error) => {
     if (error.response && error.response.status === 401) {
       // If token expired
-      if (localStorage.getItem('codehub_token')) {
+      if (localStorage.getItem('codexa_token') || localStorage.getItem('codehub_token')) {
+        localStorage.removeItem('codexa_token');
+        localStorage.removeItem('codexa_user');
         localStorage.removeItem('codehub_token');
         localStorage.removeItem('codehub_user');
         window.location.href = '/login';

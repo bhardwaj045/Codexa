@@ -14,7 +14,7 @@ export const Footer = () => {
                 <Code2 className="w-4 h-4" />
               </div>
               <span className="text-lg font-bold text-slate-900 tracking-tight">
-                CoDingHub
+                CodeXa
               </span>
             </div>
             <p className="text-sm text-slate-500">
@@ -48,7 +48,7 @@ export const Footer = () => {
           <div>
             <h4 className="text-sm font-semibold text-slate-900 uppercase tracking-wider mb-4">Platform</h4>
             <ul className="space-y-2 text-sm">
-              <li><Link to="/problems" className="hover:text-[#0D684D] transition-colors">About CoDingHub</Link></li>
+              <li><Link to="/problems" className="hover:text-[#0D684D] transition-colors">About CodeXa</Link></li>
               <li><Link to="/leaderboard" className="hover:text-[#0D684D] transition-colors">Leaderboard</Link></li>
               <li><Link to="/login" className="hover:text-[#0D684D] transition-colors">Student Sign In</Link></li>
               <li><Link to="/login" className="hover:text-[#0D684D] transition-colors">Admin Portal</Link></li>
@@ -57,7 +57,7 @@ export const Footer = () => {
         </div>
 
         <div className="border-t border-slate-100 pt-8 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-400">
-          <p>© {new Date().getFullYear()} CoDingHub. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} CodeXa. All rights reserved.</p>
           <p className="flex items-center gap-1 mt-2 sm:mt-0">
             Crafted for engineers preparing for technical interviews
           </p>

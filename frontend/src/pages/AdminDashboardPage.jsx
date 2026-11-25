@@ -259,7 +259,7 @@ export const AdminDashboardPage = () => {
                 Registered platform users
               </h3>
               <p className="text-xs text-slate-500 mt-0.5">
-                Students practicing on CoDingHub
+                Students practicing on CodeXa
               </p>
             </div>
             <Link

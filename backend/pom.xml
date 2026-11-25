@@ -12,7 +12,7 @@
 	<artifactId>backend</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>backend</name>
-	<description>CoDingHub Spring Boot Backend</description>
+	<description>CodeXa Spring Boot Backend</description>
 	<url/>
 	<licenses>
 		<license/>

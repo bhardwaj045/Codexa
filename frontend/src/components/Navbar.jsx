@@ -15,7 +15,7 @@ export const Navbar = () => {
               &lt;/&gt;
             </div>
             <span className="text-xl font-bold tracking-tight text-slate-900 group-hover:text-[#0D684D] transition-colors">
-              CoDingHub
+              CodeXa
             </span>
           </Link>
 

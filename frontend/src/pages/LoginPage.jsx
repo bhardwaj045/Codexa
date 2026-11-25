@@ -58,7 +58,7 @@ export const LoginPage = () => {
             &lt;/&gt;
           </div>
           <span className="text-xl font-bold tracking-tight text-slate-900">
-            CoDingHub
+            CodeXa
           </span>
         </Link>
 
@@ -127,7 +127,7 @@ export const LoginPage = () => {
               <span>Back to Home</span>
             </Link>
             <Link to="/" className="lg:hidden flex items-center gap-1.5 text-xs font-bold text-slate-900">
-              <span className="text-[#0D684D]">&lt;/&gt;</span> CoDingHub
+              <span className="text-[#0D684D]">&lt;/&gt;</span> CodeXa
             </Link>
           </div>
 
@@ -231,7 +231,7 @@ export const LoginPage = () => {
           </form>
 
           <p className="text-center text-xs text-slate-500 pt-1">
-            New to CoDingHub?{' '}
+            New to CodeXa?{' '}
             <Link
               to={redirectParam ? `/register?redirect=${encodeURIComponent(redirectParam)}` : "/register"}
               className="font-semibold text-[#0D684D] hover:underline"

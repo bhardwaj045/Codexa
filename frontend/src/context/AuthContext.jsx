@@ -5,10 +5,10 @@ const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(() => {
-    const saved = localStorage.getItem('codehub_user');
+    const saved = localStorage.getItem('codexa_user') || localStorage.getItem('codehub_user');
     return saved ? JSON.parse(saved) : null;
   });
-  const [token, setToken] = useState(() => localStorage.getItem('codehub_token') || null);
+  const [token, setToken] = useState(() => localStorage.getItem('codexa_token') || localStorage.getItem('codehub_token') || null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -17,6 +17,7 @@ export const AuthProvider = ({ children }) => {
         try {
           const res = await authApi.getCurrentUser();
           setUser(res.data);
+          localStorage.setItem('codexa_user', JSON.stringify(res.data));
           localStorage.setItem('codehub_user', JSON.stringify(res.data));
         } catch (err) {
           console.error("Token verification failed", err);
@@ -36,6 +37,8 @@ export const AuthProvider = ({ children }) => {
 
     setToken(jwt);
     setUser(userData);
+    localStorage.setItem('codexa_token', jwt);
+    localStorage.setItem('codexa_user', JSON.stringify(userData));
     localStorage.setItem('codehub_token', jwt);
     localStorage.setItem('codehub_user', JSON.stringify(userData));
     return userData;
@@ -48,6 +51,8 @@ export const AuthProvider = ({ children }) => {
 
     setToken(jwt);
     setUser(userData);
+    localStorage.setItem('codexa_token', jwt);
+    localStorage.setItem('codexa_user', JSON.stringify(userData));
     localStorage.setItem('codehub_token', jwt);
     localStorage.setItem('codehub_user', JSON.stringify(userData));
     return userData;
@@ -56,15 +61,17 @@ export const AuthProvider = ({ children }) => {
   const logout = () => {
     setUser(null);
     setToken(null);
+    localStorage.removeItem('codexa_token');
+    localStorage.removeItem('codexa_user');
     localStorage.removeItem('codehub_token');
     localStorage.removeItem('codehub_user');
   };
 
   const quickLogin = async (type) => {
     if (type === 'admin') {
-      return await login('admin@codehub.com', 'admin123');
+      return await login('admin@codexa.com', 'admin123');
     } else {
-      return await login('student@codehub.com', 'student123');
+      return await login('student@codexa.com', 'student123');
     }
   };
 

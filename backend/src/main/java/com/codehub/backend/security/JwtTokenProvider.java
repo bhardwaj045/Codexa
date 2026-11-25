@@ -12,7 +12,7 @@ import java.util.Date;
 public class JwtTokenProvider {
 
     // 256-bit secret key for HMAC-SHA256
-    private static final String SECRET_STRING = "CodePracticeSecureJwtSecretKeyForCoDingHubApplication2026!@#$";
+    private static final String SECRET_STRING = "CodePracticeSecureJwtSecretKeyForCodeXaApplication2026!@#$";
     private final SecretKey key = Keys.hmacShaKeyFor(SECRET_STRING.getBytes(StandardCharsets.UTF_8));
     private final long EXPIRATION_TIME = 86400000L; // 24 hours
 

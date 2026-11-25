@@ -78,7 +78,7 @@ export const RegisterPage = () => {
             &lt;/&gt;
           </div>
           <span className="text-xl font-bold tracking-tight text-slate-900">
-            CoDingHub
+            CodeXa
           </span>
         </Link>
 
@@ -148,7 +148,7 @@ export const RegisterPage = () => {
               <span>Back to Home</span>
             </Link>
             <Link to="/" className="lg:hidden flex items-center gap-1.5 text-xs font-bold text-slate-900">
-              <span className="text-[#0D684D]">&lt;/&gt;</span> CoDingHub
+              <span className="text-[#0D684D]">&lt;/&gt;</span> CodeXa
             </Link>
           </div>
 
@@ -157,7 +157,7 @@ export const RegisterPage = () => {
               CREATE YOUR ACCOUNT
             </p>
             <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight">
-              Join CoDingHub
+              Join CodeXa
             </h2>
             <p className="text-xs text-slate-500 mt-1">
               Enter your details to create your student account.
