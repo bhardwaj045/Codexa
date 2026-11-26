@@ -180,6 +180,33 @@ export const LoginPage = () => {
             </div>
           </div>
 
+          {/* Quick Demo Fill Buttons (Avoids Chrome Breach Warning) */}
+          <div className="flex items-center gap-2 p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs">
+            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider shrink-0">Quick Fill:</span>
+            <button
+              type="button"
+              onClick={() => {
+                setRole('ADMIN');
+                setEmail('admin@codexa.com');
+                setPassword('CodeXa@Admin2026!');
+              }}
+              className="px-2.5 py-1 rounded-lg bg-emerald-100 hover:bg-emerald-200 text-[#0D684D] font-bold text-xs transition-colors"
+            >
+              Admin Demo
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setRole('STUDENT');
+                setEmail('student@codexa.com');
+                setPassword('CodeXa@Student2026!');
+              }}
+              className="px-2.5 py-1 rounded-lg bg-blue-100 hover:bg-blue-200 text-blue-700 font-bold text-xs transition-colors"
+            >
+              Student Demo
+            </button>
+          </div>
+
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Email Address */}
             <div>

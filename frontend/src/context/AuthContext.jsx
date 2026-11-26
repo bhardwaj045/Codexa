@@ -69,9 +69,9 @@ export const AuthProvider = ({ children }) => {
 
   const quickLogin = async (type) => {
     if (type === 'admin') {
-      return await login('admin@codexa.com', 'admin123');
+      return await login('admin@codexa.com', 'CodeXa@Admin2026!');
     } else {
-      return await login('student@codexa.com', 'student123');
+      return await login('student@codexa.com', 'CodeXa@Student2026!');
     }
   };
 
