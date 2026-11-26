@@ -4,7 +4,8 @@ import { problemApi } from '../api/problemApi';
 import { submissionApi } from '../api/submissionApi';
 import { useAuth } from '../context/AuthContext';
 import { getLeetCodeMetadata } from '../utils/leetcodeProblems';
-import { Play, Send, RotateCcw, ArrowLeft, History, Copy, Check, X, FileCode, Clock, Terminal, CheckCircle2, ChevronDown, ChevronUp, ThumbsUp, ThumbsDown, MessageSquare, Star, Share2, Maximize2, Code2, BookOpen, FileText, Lightbulb, Tag, Lock, Sun, Moon, Users } from 'lucide-react';
+import { Play, Send, RotateCcw, ArrowLeft, History, Copy, Check, X, FileCode, Clock, Terminal, CheckCircle2, ChevronDown, ChevronUp, ThumbsUp, ThumbsDown, MessageSquare, Star, Share2, Maximize2, Code2, BookOpen, FileText, Lightbulb, Tag, Lock, Sun, Moon, Users, Eye } from 'lucide-react';
+import { ContestProctoring } from '../components/ContestProctoring';
 
 // LeetCode-style colorful syntax highlighter (single-pass tokenizer)
 const highlightCode = (code, lang, isDark) => {
@@ -457,6 +458,25 @@ export const ProblemDetailPage = () => {
           </Link>
         </div>
       </header>
+
+      {/* ADMIN CONTEST PREVIEW NOTICE */}
+      {contestId && isAdmin && (
+        <div className="bg-amber-500/15 border-b border-amber-500/30 px-4 py-2 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs text-amber-200 shrink-0">
+          <div className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-amber-400"></span>
+            <span>
+              <strong>Administrator Inspection Mode:</strong> You are previewing this contest problem. Administrators oversee contest operations and do not submit solutions.
+            </span>
+          </div>
+          <Link
+            to={`/admin/contests/${contestId}/monitor`}
+            className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs transition-colors shrink-0"
+          >
+            <Eye className="w-3.5 h-3.5" />
+            <span>Open Contest Monitor</span>
+          </Link>
+        </div>
+      )}
 
       {/* DUAL PANE WORKSPACE */}
       <div className="flex-1 flex flex-col lg:flex-row overflow-hidden p-2 gap-2">
@@ -1267,6 +1287,10 @@ export const ProblemDetailPage = () => {
             </div>
           </div>
         </div>
+      )}
+      {/* LIVE PROCTORING & ANTI-CHEAT FOR CONTESTANTS DURING CONTEST */}
+      {contestId && !isAdmin && (
+        <ContestProctoring contestTitle={problem.title} />
       )}
     </div>
   );

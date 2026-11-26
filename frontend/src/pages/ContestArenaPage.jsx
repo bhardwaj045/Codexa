@@ -20,8 +20,15 @@ import {
   RefreshCw,
   Send,
   Radio,
-  Eye
+  Eye,
+  Lock,
+  Unlock,
+  ShieldCheck,
+  Camera,
+  X,
+  Play
 } from 'lucide-react';
+import { ContestProctoring } from '../components/ContestProctoring';
 
 export const ContestArenaPage = () => {
   const { id } = useParams();
@@ -30,6 +37,8 @@ export const ContestArenaPage = () => {
   const [submissions, setSubmissions] = useState([]);
   const [activeTab, setActiveTab] = useState('PROBLEMS'); // PROBLEMS, LEADERBOARD, SUBMISSIONS
   const [timeLeft, setTimeLeft] = useState({ hours: 0, minutes: 0, seconds: 0, isFinished: false });
+  const [startCountdown, setStartCountdown] = useState({ hours: 0, minutes: 0, seconds: 0, started: false });
+  const [previewProblem, setPreviewProblem] = useState(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const { user, isAdmin } = useAuth();
@@ -39,25 +48,40 @@ export const ContestArenaPage = () => {
     loadContestData();
   }, [id]);
 
-  // Live countdown timer ticking every second
+  // Live countdown timers: ticking towards start time (if upcoming) and towards end time (if live)
   useEffect(() => {
-    if (!contest?.endTime) return;
+    if (!contest) return;
 
-    const updateTimer = () => {
-      const total = Date.parse(contest.endTime) - Date.now();
-      if (total <= 0) {
-        setTimeLeft({ hours: 0, minutes: 0, seconds: 0, isFinished: true });
-        return;
+    const updateTimers = () => {
+      const now = Date.now();
+      const startMs = Date.parse(contest.startTime);
+      const endMs = Date.parse(contest.endTime);
+
+      // Countdown to start
+      const toStart = startMs - now;
+      if (toStart <= 0) {
+        setStartCountdown({ hours: 0, minutes: 0, seconds: 0, started: true });
+      } else {
+        const s = Math.floor((toStart / 1000) % 60);
+        const m = Math.floor((toStart / 1000 / 60) % 60);
+        const h = Math.floor(toStart / (1000 * 60 * 60));
+        setStartCountdown({ hours: h, minutes: m, seconds: s, started: false });
       }
 
-      const seconds = Math.floor((total / 1000) % 60);
-      const minutes = Math.floor((total / 1000 / 60) % 60);
-      const hours = Math.floor((total / (1000 * 60 * 60)));
-      setTimeLeft({ hours, minutes, seconds, isFinished: false });
+      // Countdown to end
+      const toEnd = endMs - now;
+      if (toEnd <= 0) {
+        setTimeLeft({ hours: 0, minutes: 0, seconds: 0, isFinished: true });
+      } else {
+        const s = Math.floor((toEnd / 1000) % 60);
+        const m = Math.floor((toEnd / 1000 / 60) % 60);
+        const h = Math.floor(toEnd / (1000 * 60 * 60));
+        setTimeLeft({ hours: h, minutes: m, seconds: s, isFinished: false });
+      }
     };
 
-    updateTimer();
-    const interval = setInterval(updateTimer, 1000);
+    updateTimers();
+    const interval = setInterval(updateTimers, 1000);
     return () => clearInterval(interval);
   }, [contest]);
 
@@ -129,7 +153,12 @@ export const ContestArenaPage = () => {
     );
   }
 
-  const isLive = contest.status === 'LIVE' && !timeLeft.isFinished;
+  const now = Date.now();
+  const startMs = contest?.startTime ? Date.parse(contest.startTime) : 0;
+  const endMs = contest?.endTime ? Date.parse(contest.endTime) : 0;
+  const isUpcoming = contest?.status === 'PUBLISHED' || (startMs > 0 && now < startMs);
+  const isFinished = contest?.status === 'COMPLETED' || (endMs > 0 && now >= endMs);
+  const isLive = !isUpcoming && !isFinished && contest?.status === 'LIVE';
 
   return (
     <AppLayout title={contest.title}>
@@ -177,7 +206,7 @@ export const ContestArenaPage = () => {
                   Administrator Monitoring Mode
                 </h4>
                 <p className="text-xs text-slate-600">
-                  Admins organize and monitor contests; you do not need to solve problems. Use the live monitoring center to watch submissions and live scoreboard.
+                  Admins organize and monitor contests; solving challenges is disabled for administrator accounts. Use the live monitoring center to watch submissions and live scoreboard.
                 </p>
               </div>
             </div>
@@ -201,7 +230,12 @@ export const ContestArenaPage = () => {
                 {isLive ? (
                   <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-rose-500/20 text-rose-400 border border-rose-500/30 animate-pulse">
                     <span className="w-2 h-2 rounded-full bg-rose-500"></span>
-                    CONTEST IS LIVE
+                    CONTEST IS LIVE • PROCTORED
+                  </span>
+                ) : isUpcoming ? (
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-blue-500/20 text-blue-300 border border-blue-500/30">
+                    <Clock className="w-3.5 h-3.5" />
+                    UPCOMING • WAITING ROOM
                   </span>
                 ) : (
                   <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-slate-800 text-slate-300 border border-slate-700">
@@ -235,7 +269,7 @@ export const ContestArenaPage = () => {
             <div className="bg-slate-800/80 backdrop-blur-md rounded-2xl p-6 border border-slate-700/80 flex flex-col items-center justify-center shrink-0 min-w-[220px]">
               <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">
                 <Clock className="w-4 h-4 text-emerald-400" />
-                <span>{isLive ? 'Time Remaining' : 'Contest Ended'}</span>
+                <span>{isLive ? 'Time Remaining' : isUpcoming ? 'Contest Starts In' : 'Contest Ended'}</span>
               </div>
 
               {isLive ? (
@@ -252,6 +286,23 @@ export const ContestArenaPage = () => {
                   <span className="pb-4">:</span>
                   <div className="flex flex-col items-center">
                     <span>{timeLeft.seconds.toString().padStart(2, '0')}</span>
+                    <span className="text-[10px] font-sans font-medium text-slate-400 uppercase">Secs</span>
+                  </div>
+                </div>
+              ) : isUpcoming ? (
+                <div className="flex items-center gap-2 font-mono text-3xl sm:text-4xl font-black text-blue-400">
+                  <div className="flex flex-col items-center">
+                    <span>{startCountdown.hours.toString().padStart(2, '0')}</span>
+                    <span className="text-[10px] font-sans font-medium text-slate-400 uppercase">Hours</span>
+                  </div>
+                  <span className="pb-4">:</span>
+                  <div className="flex flex-col items-center">
+                    <span>{startCountdown.minutes.toString().padStart(2, '0')}</span>
+                    <span className="text-[10px] font-sans font-medium text-slate-400 uppercase">Mins</span>
+                  </div>
+                  <span className="pb-4">:</span>
+                  <div className="flex flex-col items-center">
+                    <span>{startCountdown.seconds.toString().padStart(2, '0')}</span>
                     <span className="text-[10px] font-sans font-medium text-slate-400 uppercase">Secs</span>
                   </div>
                 </div>
@@ -303,85 +354,144 @@ export const ContestArenaPage = () => {
             <div className="px-6 py-4 bg-slate-50/70 border-b border-slate-200 flex items-center justify-between">
               <h3 className="font-bold text-slate-800 text-sm">Contest Problem Set</h3>
               <span className="text-xs text-slate-500">
-                {isAdmin ? 'Contest problem set. Admins monitor submissions and rankings.' : 'Each challenge awards points upon getting Accepted'}
+                {isAdmin 
+                  ? 'Contest problem set. Admins monitor submissions and rankings (Solving is disabled).' 
+                  : isUpcoming 
+                  ? 'Problems will unlock automatically at the contest start time.' 
+                  : isLive
+                  ? 'Each challenge awards points upon getting Accepted • Live Proctoring Active'
+                  : 'Contest concluded. Submissions are closed.'}
               </span>
             </div>
 
-            <div className="divide-y divide-slate-100">
-              {(contest.problems || []).map((cp) => {
-                const isAccepted = cp.isSolved;
-                return (
-                  <div
-                    key={cp.id}
-                    className="p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-slate-50/80 transition-colors group"
-                  >
-                    <div className="flex items-center gap-4">
-                      {/* Problem Order Badge (A, B, C, D, E) */}
-                      <div className="w-10 h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center font-bold text-base shadow-sm shrink-0 group-hover:bg-[#0D684D] transition-colors">
-                        {cp.orderLabel}
+            {/* UPCOMING LOCK NOTICE FOR CONTESTANTS */}
+            {isUpcoming && !isAdmin ? (
+              <div className="p-12 text-center space-y-4">
+                <div className="w-16 h-16 rounded-3xl bg-blue-50 text-blue-600 flex items-center justify-center mx-auto border border-blue-200 shadow-sm">
+                  <Lock className="w-8 h-8" />
+                </div>
+                <div className="space-y-1.5 max-w-md mx-auto">
+                  <h3 className="text-xl font-extrabold text-slate-900">Challenges Locked</h3>
+                  <p className="text-sm text-slate-600 leading-relaxed">
+                    This contest has not started yet. All 5 algorithmic challenges, test cases, and the code editor will unlock automatically when the contest begins.
+                  </p>
+                </div>
+                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-50 text-blue-700 font-mono font-bold text-sm border border-blue-200">
+                  <Clock className="w-4 h-4 text-blue-500" />
+                  <span>
+                    Starts in {startCountdown.hours.toString().padStart(2, '0')}h {startCountdown.minutes.toString().padStart(2, '0')}m {startCountdown.seconds.toString().padStart(2, '0')}s
+                  </span>
+                </div>
+              </div>
+            ) : (
+              <div className="divide-y divide-slate-100">
+                {(contest.problems || []).map((cp) => {
+                  const isAccepted = cp.isSolved;
+                  return (
+                    <div
+                      key={cp.id}
+                      className="p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-slate-50/80 transition-colors group"
+                    >
+                      <div className="flex items-center gap-4">
+                        {/* Problem Order Badge (A, B, C, D, E) */}
+                        <div className="w-10 h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center font-bold text-base shadow-sm shrink-0 group-hover:bg-[#0D684D] transition-colors">
+                          {cp.orderLabel}
+                        </div>
+
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2.5">
+                            {isAdmin ? (
+                              <button
+                                onClick={() => setPreviewProblem(cp)}
+                                className="font-bold text-base text-slate-900 hover:text-[#0D684D] transition-colors text-left"
+                              >
+                                {cp.title}
+                              </button>
+                            ) : isUpcoming ? (
+                              <span className="font-bold text-base text-slate-500">
+                                Challenge {cp.orderLabel} (Locked)
+                              </span>
+                            ) : (
+                              <Link
+                                to={`/problems/${cp.problemId}?contestId=${contest.id}`}
+                                className="font-bold text-base text-slate-900 hover:text-[#0D684D] transition-colors"
+                              >
+                                {cp.title}
+                              </Link>
+                            )}
+                            {isAccepted && (
+                              <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                                <CheckCircle className="w-3.5 h-3.5" />
+                                Accepted
+                              </span>
+                            )}
+                          </div>
+
+                          <div className="flex items-center gap-3 text-xs text-slate-500">
+                            <span className={`font-semibold px-2 py-0.5 rounded ${
+                              cp.difficulty === 'EASY'
+                                ? 'bg-emerald-50 text-emerald-700'
+                                : cp.difficulty === 'MEDIUM'
+                                ? 'bg-amber-50 text-amber-700'
+                                : 'bg-rose-50 text-rose-700'
+                            }`}>
+                              {cp.difficulty}
+                            </span>
+                            <span>•</span>
+                            <span>{cp.topic}</span>
+                            <span>•</span>
+                            <span className="font-bold text-slate-700">★ {cp.points} Points</span>
+                          </div>
+                        </div>
                       </div>
 
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2.5">
+                      <div className="flex items-center gap-4 shrink-0 sm:self-center">
+                        {isAdmin ? (
+                          // ADMIN NEVER HAS A SOLVE BUTTON
+                          <button
+                            onClick={() => setPreviewProblem(cp)}
+                            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl font-semibold text-xs text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-200 transition-all shadow-xs cursor-pointer"
+                          >
+                            <Eye className="w-3.5 h-3.5 text-slate-500" />
+                            <span>Preview Details</span>
+                          </button>
+                        ) : isUpcoming ? (
+                          // CONTESTANTS CANNOT SOLVE BEFORE CONTEST BEGINS
+                          <button
+                            disabled
+                            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl font-semibold text-xs text-slate-400 bg-slate-100 border border-slate-200 cursor-not-allowed"
+                          >
+                            <Lock className="w-3.5 h-3.5" />
+                            <span>Locked until start</span>
+                          </button>
+                        ) : isFinished ? (
                           <Link
                             to={`/problems/${cp.problemId}?contestId=${contest.id}`}
-                            className="font-bold text-base text-slate-900 hover:text-[#0D684D] transition-colors"
+                            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl font-semibold text-xs text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-200 transition-all shadow-xs"
                           >
-                            {cp.title}
+                            <span>View Problem</span>
+                            <ExternalLink className="w-3.5 h-3.5" />
                           </Link>
-                          {isAccepted && (
-                            <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
-                              <CheckCircle className="w-3.5 h-3.5" />
-                              Accepted
-                            </span>
-                          )}
-                        </div>
-
-                        <div className="flex items-center gap-3 text-xs text-slate-500">
-                          <span className={`font-semibold px-2 py-0.5 rounded ${
-                            cp.difficulty === 'EASY'
-                              ? 'bg-emerald-50 text-emerald-700'
-                              : cp.difficulty === 'MEDIUM'
-                              ? 'bg-amber-50 text-amber-700'
-                              : 'bg-rose-50 text-rose-700'
-                          }`}>
-                            {cp.difficulty}
-                          </span>
-                          <span>•</span>
-                          <span>{cp.topic}</span>
-                          <span>•</span>
-                          <span className="font-bold text-slate-700">★ {cp.points} Points</span>
-                        </div>
+                        ) : (
+                          // ONLY LIVE CONTESTANTS CAN SOLVE
+                          <Link
+                            to={`/problems/${cp.problemId}?contestId=${contest.id}`}
+                            className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-xs sm:text-sm transition-all shadow-sm ${
+                              isAccepted
+                                ? 'bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100'
+                                : 'bg-[#0D684D] hover:bg-[#0A543E] text-white hover:scale-105'
+                            }`}
+                          >
+                            <span>{isAccepted ? 'Review Solution' : 'Solve Challenge'}</span>
+                            <Play className="w-3.5 h-3.5 fill-current" />
+                          </Link>
+                        )}
                       </div>
                     </div>
-
-                    <div className="flex items-center gap-4 shrink-0 sm:self-center">
-                      {isAdmin ? (
-                        <Link
-                          to={`/problems/${cp.problemId}?contestId=${contest.id}`}
-                          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl font-semibold text-xs text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-200 transition-all shadow-xs"
-                        >
-                          <Eye className="w-3.5 h-3.5 text-slate-500" />
-                          <span>View Problem</span>
-                        </Link>
-                      ) : (
-                        <Link
-                          to={`/problems/${cp.problemId}?contestId=${contest.id}`}
-                          className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-xs sm:text-sm transition-all shadow-sm ${
-                            isAccepted
-                              ? 'bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100'
-                              : 'bg-[#0D684D] hover:bg-[#0A543E] text-white hover:scale-105'
-                          }`}
-                        >
-                          <span>{isAccepted ? 'Review Solution' : 'Solve Challenge'}</span>
-                          <ExternalLink className="w-3.5 h-3.5" />
-                        </Link>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         )}
 
@@ -595,6 +705,64 @@ export const ContestArenaPage = () => {
               </table>
             </div>
           </div>
+        )}
+
+        {/* ADMIN READ-ONLY PROBLEM PREVIEW MODAL */}
+        {previewProblem && (
+          <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+            <div className="bg-white rounded-3xl max-w-2xl w-full p-6 shadow-2xl border border-slate-200 space-y-5 max-h-[85vh] overflow-y-auto animate-in zoom-in-95">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                <div className="flex items-center gap-2">
+                  <span className="w-7 h-7 rounded-lg bg-slate-900 text-white font-bold text-xs flex items-center justify-center">
+                    {previewProblem.orderLabel}
+                  </span>
+                  <div>
+                    <h3 className="font-bold text-slate-900 text-base">{previewProblem.title}</h3>
+                    <p className="text-[11px] text-slate-500">{previewProblem.topic} • {previewProblem.points} Points • {previewProblem.difficulty}</p>
+                  </div>
+                </div>
+                <button onClick={() => setPreviewProblem(null)} className="p-1 rounded-lg text-slate-400 hover:text-slate-600">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-900 flex items-center gap-2">
+                <Eye className="w-4 h-4 text-amber-700 shrink-0" />
+                <span>
+                  <strong>Admin Preview Mode:</strong> Administrators oversee contest submissions and do not solve challenges.
+                </span>
+              </div>
+
+              <div className="space-y-3 text-sm text-slate-700">
+                <p className="font-semibold text-xs uppercase tracking-wider text-slate-400">Challenge Overview</p>
+                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 text-xs space-y-2">
+                  <p><strong>Difficulty:</strong> {previewProblem.difficulty}</p>
+                  <p><strong>Topic / Tag:</strong> {previewProblem.topic}</p>
+                  <p><strong>Contest Points:</strong> {previewProblem.points} pts awarded on Accepted verdict</p>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between pt-3 border-t border-slate-100">
+                <Link
+                  to={`/admin/contests/${contest.id}/monitor`}
+                  className="px-4 py-2 rounded-xl bg-[#0D684D] hover:bg-[#0A543E] text-white font-bold text-xs shadow-sm transition-all"
+                >
+                  Go to Live Monitor Console
+                </Link>
+                <button
+                  onClick={() => setPreviewProblem(null)}
+                  className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* LIVE WEBCAM PROCTORING WIDGET FOR CONTESTANTS DURING LIVE CONTEST */}
+        {!isAdmin && isLive && (
+          <ContestProctoring contestTitle={contest.title} />
         )}
       </div>
     </AppLayout>
