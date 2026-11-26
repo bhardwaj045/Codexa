@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Menu, X } from 'lucide-react';
+import { Menu, X, LayoutDashboard } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 export const Navbar = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { isAuthenticated, isAdmin } = useAuth();
 
   return (
     <nav className="bg-white/95 backdrop-blur-md border-b border-slate-200 sticky top-0 z-50 shadow-sm">
@@ -19,44 +21,34 @@ export const Navbar = () => {
                 CodeXa
               </span>
             </Link>
-
-            <div className="hidden md:flex items-center gap-1">
-              <Link
-                to="/problems"
-                className="px-3.5 py-1.5 text-xs sm:text-sm font-semibold text-slate-600 hover:text-[#0D684D] hover:bg-slate-50 rounded-lg transition-colors"
-              >
-                Problems
-              </Link>
-              <Link
-                to="/contests"
-                className="px-3.5 py-1.5 text-xs sm:text-sm font-semibold text-slate-600 hover:text-[#0D684D] hover:bg-slate-50 rounded-lg transition-colors inline-flex items-center gap-1.5"
-              >
-                <span>Contests</span>
-                <span className="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-rose-50 text-rose-600 border border-rose-200">Live</span>
-              </Link>
-              <Link
-                to="/leaderboard"
-                className="px-3.5 py-1.5 text-xs sm:text-sm font-semibold text-slate-600 hover:text-[#0D684D] hover:bg-slate-50 rounded-lg transition-colors"
-              >
-                Leaderboard
-              </Link>
-            </div>
           </div>
 
-          {/* Right Header Controls: Sign In & Sign Up */}
+          {/* Right Header Controls: Dashboard or Sign In & Sign Up */}
           <div className="hidden md:flex items-center gap-3">
-            <Link
-              to="/login"
-              className="px-4 py-2 text-xs sm:text-sm font-semibold text-slate-700 hover:text-[#0D684D] hover:bg-slate-100 rounded-xl transition-all"
-            >
-              Sign In
-            </Link>
-            <Link
-              to="/register"
-              className="px-5 py-2 text-xs sm:text-sm font-semibold bg-[#0D684D] hover:bg-[#0A543E] text-white rounded-xl transition-all shadow-sm hover:scale-[1.02]"
-            >
-              Sign Up
-            </Link>
+            {isAuthenticated ? (
+              <Link
+                to={isAdmin ? "/admin" : "/dashboard"}
+                className="px-5 py-2 text-xs sm:text-sm font-semibold bg-[#0D684D] hover:bg-[#0A543E] text-white rounded-xl transition-all shadow-sm hover:scale-[1.02] flex items-center gap-2"
+              >
+                <LayoutDashboard className="w-4 h-4" />
+                <span>{isAdmin ? "Admin Portal" : "Go to Dashboard"}</span>
+              </Link>
+            ) : (
+              <>
+                <Link
+                  to="/login"
+                  className="px-4 py-2 text-xs sm:text-sm font-semibold text-slate-700 hover:text-[#0D684D] hover:bg-slate-100 rounded-xl transition-all"
+                >
+                  Sign In
+                </Link>
+                <Link
+                  to="/register"
+                  className="px-5 py-2 text-xs sm:text-sm font-semibold bg-[#0D684D] hover:bg-[#0A543E] text-white rounded-xl transition-all shadow-sm hover:scale-[1.02]"
+                >
+                  Sign Up
+                </Link>
+              </>
+            )}
           </div>
 
           {/* Mobile menu button */}
@@ -75,20 +67,32 @@ export const Navbar = () => {
       {/* Mobile Menu */}
       {mobileMenuOpen && (
         <div className="md:hidden border-t border-slate-200 bg-white px-4 pt-3 pb-6 space-y-2">
-          <Link
-            to="/login"
-            onClick={() => setMobileMenuOpen(false)}
-            className="block px-3 py-2 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50 text-center"
-          >
-            Sign In
-          </Link>
-          <Link
-            to="/register"
-            onClick={() => setMobileMenuOpen(false)}
-            className="block px-3 py-2 rounded-lg text-sm font-semibold bg-[#0D684D] text-white text-center shadow-sm"
-          >
-            Sign Up
-          </Link>
+          {isAuthenticated ? (
+            <Link
+              to={isAdmin ? "/admin" : "/dashboard"}
+              onClick={() => setMobileMenuOpen(false)}
+              className="block px-3 py-2 rounded-lg text-sm font-semibold bg-[#0D684D] text-white text-center shadow-sm"
+            >
+              {isAdmin ? "Admin Portal" : "Go to Dashboard"}
+            </Link>
+          ) : (
+            <>
+              <Link
+                to="/login"
+                onClick={() => setMobileMenuOpen(false)}
+                className="block px-3 py-2 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50 text-center"
+              >
+                Sign In
+              </Link>
+              <Link
+                to="/register"
+                onClick={() => setMobileMenuOpen(false)}
+                className="block px-3 py-2 rounded-lg text-sm font-semibold bg-[#0D684D] text-white text-center shadow-sm"
+              >
+                Sign Up
+              </Link>
+            </>
+          )}
         </div>
       )}
     </nav>
