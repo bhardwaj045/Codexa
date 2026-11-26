@@ -418,9 +418,9 @@ export const ProblemDetailPage = () => {
       <header className={`h-12 ${bgPane} border-b ${borderCol} px-4 flex items-center justify-between shrink-0 z-20`}>
         <div className="flex items-center gap-3">
           <Link
-            to="/problems"
+            to={contestId ? (isAdmin ? `/admin/contests/${contestId}/monitor` : `/contests/${contestId}`) : isAdmin ? '/admin/problems' : '/problems'}
             className={`p-1.5 rounded-lg border ${borderCol} hover:${bgSubPane} ${textMuted} transition-colors`}
-            title="Problem List"
+            title={contestId ? (isAdmin ? 'Back to Monitor' : 'Back to Contest Arena') : (isAdmin ? 'Back to Admin Problems' : 'Problem List')}
           >
             <ArrowLeft className="w-4 h-4" />
           </Link>
@@ -482,79 +482,81 @@ export const ProblemDetailPage = () => {
       <div className={`flex-1 flex overflow-hidden p-2 gap-2 ${isAdmin ? 'justify-center max-w-5xl mx-auto w-full' : 'flex-col lg:flex-row'}`}>
         {/* PROBLEM STATEMENT PANE */}
         <div className={`flex flex-col rounded-xl overflow-hidden border ${borderCol} ${bgPane} shadow-sm ${isAdmin ? 'w-full' : 'w-full lg:w-1/2'}`}>
-          {/* LeetCode Top Tabs Bar */}
-          <div className={`h-10 border-b ${borderCol} px-3 flex items-center justify-between shrink-0 ${bgSubPane}`}>
-            <div className="flex items-center gap-1">
-              <button
-                onClick={() => setLeftTab('description')}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
-                  leftTab === 'description' 
-                    ? isDark ? 'bg-[#333333] text-white shadow-xs' : 'bg-white text-slate-900 font-bold shadow-xs border border-[#E2E8F0]'
-                    : `${textMuted} hover:${textHead}`
-                }`}
-              >
-                <FileText className="w-3.5 h-3.5 text-blue-400" />
-                <span>Description</span>
-              </button>
+          {/* LeetCode Top Tabs Bar - Hidden for Admin as Admin does not submit/solve */}
+          {!isAdmin && (
+            <div className={`h-10 border-b ${borderCol} px-3 flex items-center justify-between shrink-0 ${bgSubPane}`}>
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={() => setLeftTab('description')}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
+                    leftTab === 'description' 
+                      ? isDark ? 'bg-[#333333] text-white shadow-xs' : 'bg-white text-slate-900 font-bold shadow-xs border border-[#E2E8F0]'
+                      : `${textMuted} hover:${textHead}`
+                  }`}
+                >
+                  <FileText className="w-3.5 h-3.5 text-blue-400" />
+                  <span>Description</span>
+                </button>
 
-              <button
-                onClick={() => setLeftTab('solutions')}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
-                  leftTab === 'solutions' 
-                    ? isDark ? 'bg-[#333333] text-white shadow-xs' : 'bg-white text-slate-900 font-bold shadow-xs border border-[#E2E8F0]'
-                    : `${textMuted} hover:${textHead}`
-                }`}
-              >
-                <Code2 className="w-3.5 h-3.5 text-cyan-400" />
-                <span>Solutions</span>
-              </button>
+                <button
+                  onClick={() => setLeftTab('solutions')}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
+                    leftTab === 'solutions' 
+                      ? isDark ? 'bg-[#333333] text-white shadow-xs' : 'bg-white text-slate-900 font-bold shadow-xs border border-[#E2E8F0]'
+                      : `${textMuted} hover:${textHead}`
+                  }`}
+                >
+                  <Code2 className="w-3.5 h-3.5 text-cyan-400" />
+                  <span>Solutions</span>
+                </button>
 
-              <button
-                onClick={() => setLeftTab('editorial')}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
-                  leftTab === 'editorial' 
-                    ? isDark ? 'bg-[#333333] text-white shadow-xs' : 'bg-white text-slate-900 font-bold shadow-xs border border-[#E2E8F0]'
-                    : `${textMuted} hover:${textHead}`
-                }`}
-              >
-                <BookOpen className="w-3.5 h-3.5 text-amber-400" />
-                <span>Editorial</span>
-              </button>
+                <button
+                  onClick={() => setLeftTab('editorial')}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
+                    leftTab === 'editorial' 
+                      ? isDark ? 'bg-[#333333] text-white shadow-xs' : 'bg-white text-slate-900 font-bold shadow-xs border border-[#E2E8F0]'
+                      : `${textMuted} hover:${textHead}`
+                  }`}
+                >
+                  <BookOpen className="w-3.5 h-3.5 text-amber-400" />
+                  <span>Editorial</span>
+                </button>
 
-              <button
-                onClick={() => setLeftTab('submissions')}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
-                  leftTab === 'submissions' 
-                    ? isDark ? 'bg-[#333333] text-white shadow-xs' : 'bg-white text-slate-900 font-bold shadow-xs border border-[#E2E8F0]'
-                    : `${textMuted} hover:${textHead}`
-                }`}
-              >
-                <History className="w-3.5 h-3.5 text-emerald-400" />
-                <span>Submissions {problemSubmissions.length > 0 ? `(${problemSubmissions.length})` : ''}</span>
-              </button>
+                <button
+                  onClick={() => setLeftTab('submissions')}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
+                    leftTab === 'submissions' 
+                      ? isDark ? 'bg-[#333333] text-white shadow-xs' : 'bg-white text-slate-900 font-bold shadow-xs border border-[#E2E8F0]'
+                      : `${textMuted} hover:${textHead}`
+                  }`}
+                >
+                  <History className="w-3.5 h-3.5 text-emerald-400" />
+                  <span>Submissions {problemSubmissions.length > 0 ? `(${problemSubmissions.length})` : ''}</span>
+                </button>
+              </div>
+
+              <div className={`flex items-center gap-1 ${textMuted}`}>
+                <button 
+                  onClick={() => setIsFullscreen(!isFullscreen)} 
+                  className={`p-1 rounded hover:${textHead}`}
+                  title="Toggle View"
+                >
+                  <Maximize2 className="w-3.5 h-3.5" />
+                </button>
+              </div>
             </div>
-
-            <div className={`flex items-center gap-1 ${textMuted}`}>
-              <button 
-                onClick={() => setIsFullscreen(!isFullscreen)} 
-                className={`p-1 rounded hover:${textHead}`}
-                title="Toggle View"
-              >
-                <Maximize2 className="w-3.5 h-3.5" />
-              </button>
-            </div>
-          </div>
+          )}
 
           {/* Left Pane Content Body */}
           <div className="flex-1 overflow-y-auto p-6 space-y-6">
-            {leftTab === 'description' ? (
+            {(leftTab === 'description' || isAdmin) ? (
               <>
                 {/* Title & Solved Checkmark */}
                 <div className="flex items-center justify-between">
                   <h1 className={`text-2xl font-bold tracking-tight ${textHead}`}>
                     {problem.id}. {problem.title}
                   </h1>
-                  {isSolved && (
+                  {isSolved && !isAdmin && (
                     <div className="flex items-center gap-1 text-emerald-500 text-xs font-bold bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-0.5 rounded-full">
                       <span>Solved</span>
                       <Check className="w-3.5 h-3.5 stroke-[3]" />
