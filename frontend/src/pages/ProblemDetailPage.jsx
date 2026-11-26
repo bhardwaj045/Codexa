@@ -459,25 +459,6 @@ export const ProblemDetailPage = () => {
         </div>
       </header>
 
-      {/* ADMIN CONTEST PREVIEW NOTICE */}
-      {contestId && isAdmin && (
-        <div className="bg-amber-500/15 border-b border-amber-500/30 px-4 py-2 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs text-amber-200 shrink-0">
-          <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-amber-400"></span>
-            <span>
-              <strong>Administrator Inspection Mode:</strong> You are previewing this contest problem. Administrators oversee contest operations and do not submit solutions.
-            </span>
-          </div>
-          <Link
-            to={`/admin/contests/${contestId}/monitor`}
-            className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs transition-colors shrink-0"
-          >
-            <Eye className="w-3.5 h-3.5" />
-            <span>Open Contest Monitor</span>
-          </Link>
-        </div>
-      )}
-
       {/* WORKSPACE: FULL-WIDTH PROBLEM VIEW FOR ADMIN, DUAL-PANE WORKSPACE FOR STUDENTS */}
       <div className={`flex-1 flex overflow-hidden p-2 gap-2 ${isAdmin ? 'justify-center max-w-5xl mx-auto w-full' : 'flex-col lg:flex-row'}`}>
         {/* PROBLEM STATEMENT PANE */}
@@ -1294,7 +1275,12 @@ export const ProblemDetailPage = () => {
       )}
       {/* LIVE PROCTORING & ANTI-CHEAT FOR CONTESTANTS DURING CONTEST */}
       {contestId && !isAdmin && (
-        <ContestProctoring contestTitle={problem.title} />
+        <ContestProctoring 
+          contestId={contestId}
+          contestTitle={problem.title} 
+          userId={user?.id}
+          userName={user?.name}
+        />
       )}
     </div>
   );

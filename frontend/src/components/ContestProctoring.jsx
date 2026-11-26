@@ -7,11 +7,13 @@ import {
   Eye, 
   X, 
   Maximize2, 
-  Minimize2,
-  AlertOctagon,
-  CheckCircle2,
-  Lock
+  Minimize2, 
+  AlertOctagon, 
+  CheckCircle2, 
+  Lock,
+  Ban
 } from 'lucide-react';
+import { proctoringService } from '../utils/proctoringService';
 
 // Play an instant synthesized warning beep using Web Audio API
 const playWarningBeep = () => {
@@ -33,7 +35,14 @@ const playWarningBeep = () => {
   }
 };
 
-export const ContestProctoring = ({ contestTitle = 'CodeXa Contest', onViolation }) => {
+export const ContestProctoring = ({ 
+  contestId,
+  contestTitle = 'CodeXa Contest', 
+  userId,
+  userName,
+  onViolation,
+  onBan
+}) => {
   const videoRef = useRef(null);
   const [stream, setStream] = useState(null);
   const [cameraStatus, setCameraStatus] = useState('prompting'); // 'prompting', 'active', 'denied'
@@ -42,6 +51,23 @@ export const ContestProctoring = ({ contestTitle = 'CodeXa Contest', onViolation
   const [currentWarning, setCurrentWarning] = useState(null);
   const [isMinimized, setIsMinimized] = useState(false);
   const [showPermissionModal, setShowPermissionModal] = useState(false);
+  const [isBanned, setIsBanned] = useState(false);
+  const [banInfo, setBanInfo] = useState(null);
+
+  // Check initial ban status and previous warnings
+  useEffect(() => {
+    if (userId) {
+      const banCheck = proctoringService.checkUserBan(userId);
+      if (banCheck.isBanned) {
+        setIsBanned(true);
+        setBanInfo(banCheck);
+        if (onBan) onBan(banCheck);
+      }
+      const existing = proctoringService.getWarnings(contestId, userId);
+      setViolations(existing);
+      proctoringService.registerActiveContestant(contestId, userId, userName, existing.length);
+    }
+  }, [contestId, userId, userName]);
 
   // 1. Initialize and request camera stream
   const startCamera = async () => {
@@ -106,27 +132,30 @@ export const ContestProctoring = ({ contestTitle = 'CodeXa Contest', onViolation
   // 2. Trigger violation warning
   const recordViolation = (reason, code = 'PROCTOR_VIOLATION') => {
     playWarningBeep();
-    const violationEntry = {
-      id: Date.now(),
-      time: new Date().toLocaleTimeString(),
-      reason,
-      code
-    };
 
-    setViolations((prev) => {
-      const next = [violationEntry, ...prev];
-      if (onViolation) onViolation(violationEntry, next.length);
-      return next;
-    });
+    const result = proctoringService.recordViolation(contestId, userId, userName, reason, code);
 
-    setCurrentWarning({
-      message: reason,
-      count: violations.length + 1
-    });
+    setViolations(result.warnings || []);
+
+    if (result.isBanned) {
+      setIsBanned(true);
+      setBanInfo(result.banInfo);
+      if (onBan) onBan(result.banInfo);
+    } else {
+      setCurrentWarning({
+        message: reason,
+        count: result.count,
+        remaining: result.remaining
+      });
+    }
+
+    if (onViolation) onViolation(reason, result.count);
   };
 
   // 3. Intercept and block Ctrl+C, Ctrl+V, Cut, ContextMenu, and Tab Switches
   useEffect(() => {
+    if (isBanned) return;
+
     // Block keyboard shortcuts: Ctrl+C, Ctrl+V, Ctrl+X, Cmd+C, Cmd+V, Cmd+X
     const handleKeyDown = (e) => {
       const isCtrlOrCmd = e.ctrlKey || e.metaKey;
@@ -216,14 +245,18 @@ export const ContestProctoring = ({ contestTitle = 'CodeXa Contest', onViolation
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       window.removeEventListener('blur', handleWindowBlur);
     };
-  }, [violations.length]);
+  }, [violations.length, isBanned]);
 
   return (
     <>
       {/* 1. FLOATING WEBCAM PROCTORING WIDGET */}
       <div 
         className={`fixed z-50 transition-all duration-300 shadow-2xl rounded-2xl overflow-hidden border-2 select-none ${
-          violations.length > 0 ? 'border-rose-500' : 'border-emerald-500'
+          isBanned 
+            ? 'border-rose-600' 
+            : violations.length > 0 
+              ? 'border-rose-500' 
+              : 'border-emerald-500'
         } ${
           isMinimized 
             ? 'bottom-4 right-4 w-52 bg-slate-900/95 text-white' 
@@ -233,20 +266,24 @@ export const ContestProctoring = ({ contestTitle = 'CodeXa Contest', onViolation
         {/* Widget Top Header */}
         <div className="px-3 py-2 bg-slate-800 flex items-center justify-between text-xs border-b border-slate-700">
           <div className="flex items-center gap-1.5 font-bold tracking-tight">
-            {cameraStatus === 'active' ? (
+            {isBanned ? (
+              <span className="w-2.5 h-2.5 rounded-full bg-rose-600 animate-ping"></span>
+            ) : cameraStatus === 'active' ? (
               <span className="w-2.5 h-2.5 rounded-full bg-rose-500 animate-pulse"></span>
             ) : (
               <span className="w-2.5 h-2.5 rounded-full bg-amber-400"></span>
             )}
             <span className="text-[11px] uppercase tracking-wider text-slate-200">
-              {cameraStatus === 'active' ? 'Live Proctoring' : 'Proctoring'}
+              {isBanned ? 'Disqualified' : cameraStatus === 'active' ? 'Live Proctoring' : 'Proctoring'}
             </span>
           </div>
 
           <div className="flex items-center gap-1 text-slate-400">
             {violations.length > 0 && (
-              <span className="px-1.5 py-0.5 rounded-md bg-rose-500/20 text-rose-300 text-[10px] font-bold">
-                {violations.length} {violations.length === 1 ? 'alert' : 'alerts'}
+              <span className={`px-1.5 py-0.5 rounded-md text-[10px] font-bold ${
+                violations.length >= 5 ? 'bg-rose-600 text-white' : 'bg-rose-500/20 text-rose-300'
+              }`}>
+                {violations.length}/5 {violations.length === 1 ? 'alert' : 'alerts'}
               </span>
             )}
             <button
@@ -302,12 +339,12 @@ export const ContestProctoring = ({ contestTitle = 'CodeXa Contest', onViolation
             <Lock className="w-3 h-3" />
             <span>Anti-Cheat Guard Active</span>
           </div>
-          <span className="text-[9px] text-slate-500 font-mono">Ctrl+C/V Locked</span>
+          <span className="text-[9px] text-slate-500 font-mono">5 Warnings = 1-Mo Ban</span>
         </div>
       </div>
 
-      {/* 2. PROMINENT PROCTORING WARNING MODAL (Appears on Ctrl+C / Ctrl+V / Tab Switch) */}
-      {currentWarning && (
+      {/* 2. PROMINENT PROCTORING WARNING MODAL (Appears on Warnings 1-4) */}
+      {currentWarning && !isBanned && (
         <div className="fixed inset-0 z-50 bg-slate-950/75 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in zoom-in-95 duration-150">
           <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border-2 border-rose-500 space-y-5 text-center">
             <div className="w-14 h-14 rounded-2xl bg-rose-100 text-rose-600 flex items-center justify-center mx-auto shadow-sm">
@@ -317,7 +354,7 @@ export const ContestProctoring = ({ contestTitle = 'CodeXa Contest', onViolation
             <div className="space-y-2">
               <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-rose-100 text-rose-700 border border-rose-300">
                 <AlertTriangle className="w-3.5 h-3.5" />
-                <span>PROCTORING ALERT #{currentWarning.count}</span>
+                <span>WARNING {currentWarning.count} OF 5</span>
               </div>
               <h3 className="text-xl font-extrabold text-slate-900 tracking-tight">
                 Anti-Cheat Policy Violation
@@ -327,31 +364,72 @@ export const ContestProctoring = ({ contestTitle = 'CodeXa Contest', onViolation
               </p>
             </div>
 
-            <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 text-left text-xs space-y-1.5 text-slate-600">
-              <p className="font-bold text-slate-800 flex items-center gap-1.5">
-                <AlertOctagon className="w-4 h-4 text-amber-500" />
-                Contest Rules & Regulations:
+            <div className="p-3.5 rounded-xl bg-amber-50 border border-amber-200 text-left text-xs space-y-1.5 text-amber-900">
+              <p className="font-bold flex items-center gap-1.5 text-amber-900">
+                <AlertOctagon className="w-4 h-4 text-amber-600 shrink-0" />
+                <span>Strict Security Notice:</span>
               </p>
-              <ul className="list-disc list-inside space-y-1 text-[11px] text-slate-600 pl-1">
-                <li>Copying (Ctrl+C) and Pasting (Ctrl+V) are strictly blocked.</li>
-                <li>Solutions must be typed and coded manually in the editor.</li>
-                <li>Tab switching and window minimization are logged to judges.</li>
-                <li>Live camera feed must remain unobstructed.</li>
-              </ul>
+              <p className="text-[11px] leading-relaxed">
+                You have received warning <strong>{currentWarning.count} of 5</strong>. If you reach <strong>5 warnings</strong>, your contest access will be immediately terminated and your account will be <strong>blocked from participating in contests for 1 Month</strong>.
+              </p>
             </div>
 
             <button
               onClick={() => setCurrentWarning(null)}
               className="w-full py-3 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-sm shadow-md transition-all hover:scale-[1.02] active:scale-95"
             >
-              I Understand — Return to Contest
+              I Understand ({currentWarning.remaining} Warnings Remaining)
             </button>
           </div>
         </div>
       )}
 
-      {/* 3. CAMERA PERMISSION REQUIRED DIALOG */}
-      {showPermissionModal && cameraStatus === 'denied' && (
+      {/* 3. 1-MONTH BAN DISQUALIFICATION MODAL (Triggered at 5 warnings) */}
+      {isBanned && (
+        <div className="fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in zoom-in-95 duration-200">
+          <div className="bg-white rounded-3xl max-w-lg w-full p-8 shadow-2xl border-2 border-rose-600 text-center space-y-6">
+            <div className="w-16 h-16 rounded-2xl bg-rose-100 text-rose-600 flex items-center justify-center mx-auto shadow-sm">
+              <Ban className="w-9 h-9 animate-pulse" />
+            </div>
+
+            <div className="space-y-2">
+              <span className="px-3 py-1 rounded-full text-xs font-bold bg-rose-100 text-rose-700 border border-rose-300">
+                DISQUALIFIED & SUSPENDED
+              </span>
+              <h2 className="text-2xl font-extrabold text-slate-900 tracking-tight">
+                Contest Access Suspended (1-Month Ban)
+              </h2>
+              <p className="text-sm text-slate-600 leading-relaxed font-medium">
+                You have reached <strong>5 anti-cheat security warnings</strong> during the contest. In accordance with CodeXa academic integrity policies, you have been disqualified and your account has been <strong>blocked from participating in contests for 1 Month</strong>.
+              </p>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-rose-50 border border-rose-200 text-left text-xs space-y-2 text-rose-950">
+              <div className="flex items-center justify-between font-semibold">
+                <span>Suspension Duration:</span>
+                <span className="font-bold">1 Month (30 Days)</span>
+              </div>
+              <div className="flex items-center justify-between font-semibold">
+                <span>Suspended Until:</span>
+                <span className="font-bold">{banInfo?.formattedExpiry || new Date(Date.now() + 30*24*60*60*1000).toLocaleDateString()}</span>
+              </div>
+              <div className="pt-1 text-[11px] text-rose-700 border-t border-rose-200">
+                Reason: Exceeded maximum 5 security warnings (Ctrl+C, Ctrl+V, right click, or tab switching).
+              </div>
+            </div>
+
+            <a
+              href="/dashboard"
+              className="block w-full py-3.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-sm shadow-md transition-all text-center hover:scale-[1.02]"
+            >
+              Exit to Dashboard
+            </a>
+          </div>
+        </div>
+      )}
+
+      {/* 4. CAMERA PERMISSION REQUIRED DIALOG */}
+      {showPermissionModal && cameraStatus === 'denied' && !isBanned && (
         <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-amber-300 space-y-5 text-center">
             <div className="w-14 h-14 rounded-2xl bg-amber-100 text-amber-600 flex items-center justify-center mx-auto">

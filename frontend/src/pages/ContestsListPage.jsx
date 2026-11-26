@@ -15,8 +15,10 @@ import {
   Flame, 
   Plus, 
   Sparkles,
-  AlertCircle
+  AlertCircle,
+  Ban
 } from 'lucide-react';
+import { proctoringService } from '../utils/proctoringService';
 
 export const ContestsListPage = () => {
   const [contests, setContests] = useState([]);
@@ -26,6 +28,8 @@ export const ContestsListPage = () => {
   const [actionMessage, setActionMessage] = useState('');
   const { user, isAdmin } = useAuth();
   const navigate = useNavigate();
+
+  const banCheck = !isAdmin && user ? proctoringService.checkUserBan(user.id) : { isBanned: false };
 
   useEffect(() => {
     fetchContests();
@@ -146,6 +150,21 @@ export const ContestsListPage = () => {
             )}
           </div>
         </div>
+
+        {/* CONTEST BAN SUSPENSION BANNER */}
+        {banCheck.isBanned && (
+          <div className="p-4 rounded-2xl bg-rose-50 border-2 border-rose-300 text-rose-800 text-xs font-semibold flex items-center justify-between gap-3 shadow-sm animate-in fade-in">
+            <div className="flex items-center gap-2.5">
+              <Ban className="w-5 h-5 text-rose-600 shrink-0" />
+              <span>
+                <strong>Contest Participation Suspended (1-Month Ban):</strong> Your account received 5 anti-cheat warnings and cannot participate in contests until <strong>{banCheck.formattedExpiry}</strong>.
+              </span>
+            </div>
+            <span className="px-2.5 py-1 rounded-lg bg-rose-600 text-white font-bold text-[10px] shrink-0">
+              BLOCKED
+            </span>
+          </div>
+        )}
 
         {/* FEEDBACK ALERT */}
         {actionMessage && (
@@ -281,29 +300,40 @@ export const ContestsListPage = () => {
                       )}
 
                       <div className="flex items-center gap-3 w-full sm:w-auto">
-                        {!isAdmin && !contest.isRegistered && !isFinished ? (
+                        {banCheck.isBanned ? (
                           <button
-                            onClick={(e) => handleJoin(contest.id, e)}
-                            disabled={registeringId === contest.id}
-                            className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs sm:text-sm shadow-sm transition-all hover:scale-105"
+                            disabled
+                            className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-rose-100 text-rose-700 font-bold text-xs cursor-not-allowed border border-rose-200"
                           >
-                            {registeringId === contest.id ? 'Registering...' : 'Register Now'}
+                            Blocked (1-Month Ban)
                           </button>
-                        ) : null}
+                        ) : (
+                          <>
+                            {!isAdmin && !contest.isRegistered && !isFinished ? (
+                              <button
+                                onClick={(e) => handleJoin(contest.id, e)}
+                                disabled={registeringId === contest.id}
+                                className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs sm:text-sm shadow-sm transition-all hover:scale-105"
+                              >
+                                {registeringId === contest.id ? 'Registering...' : 'Register Now'}
+                              </button>
+                            ) : null}
 
-                        <Link
-                          to={isAdmin ? `/admin/contests/${contest.id}/monitor` : `/contests/${contest.id}`}
-                          className={`w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all ${
-                            isLive || isAdmin
-                              ? 'bg-[#0D684D] hover:bg-[#0A543E] text-white shadow-md hover:scale-[1.02]'
-                              : isUpcoming
-                              ? 'bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200'
-                              : 'bg-slate-100 hover:bg-slate-200 text-slate-800'
-                          }`}
-                        >
-                          <span>{isAdmin ? 'Open Live Monitor' : isLive ? 'Enter Arena (Live)' : isUpcoming ? 'Waiting Room' : 'View Results'}</span>
-                          <ArrowRight className="w-4 h-4" />
-                        </Link>
+                            <Link
+                              to={isAdmin ? `/admin/contests/${contest.id}/monitor` : `/contests/${contest.id}`}
+                              className={`w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all ${
+                                isLive || isAdmin
+                                  ? 'bg-[#0D684D] hover:bg-[#0A543E] text-white shadow-md hover:scale-[1.02]'
+                                  : isUpcoming
+                                  ? 'bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200'
+                                  : 'bg-slate-100 hover:bg-slate-200 text-slate-800'
+                              }`}
+                            >
+                              <span>{isAdmin ? 'Open Live Monitor' : isLive ? 'Enter Arena (Live)' : isUpcoming ? 'Waiting Room' : 'View Results'}</span>
+                              <ArrowRight className="w-4 h-4" />
+                            </Link>
+                          </>
+                        )}
                       </div>
                     </div>
                   </div>

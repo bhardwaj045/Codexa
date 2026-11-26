@@ -26,9 +26,11 @@ import {
   ShieldCheck,
   Camera,
   X,
-  Play
+  Play,
+  Ban
 } from 'lucide-react';
 import { ContestProctoring } from '../components/ContestProctoring';
+import { proctoringService } from '../utils/proctoringService';
 
 export const ContestArenaPage = () => {
   const { id } = useParams();
@@ -762,7 +764,12 @@ export const ContestArenaPage = () => {
 
         {/* LIVE WEBCAM PROCTORING WIDGET FOR CONTESTANTS DURING LIVE CONTEST */}
         {!isAdmin && isLive && (
-          <ContestProctoring contestTitle={contest.title} />
+          <ContestProctoring 
+            contestId={contest.id}
+            contestTitle={contest.title}
+            userId={user?.id}
+            userName={user?.name}
+          />
         )}
       </div>
     </AppLayout>
