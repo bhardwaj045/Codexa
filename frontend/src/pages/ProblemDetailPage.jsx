@@ -478,10 +478,10 @@ export const ProblemDetailPage = () => {
         </div>
       )}
 
-      {/* DUAL PANE WORKSPACE */}
-      <div className="flex-1 flex flex-col lg:flex-row overflow-hidden p-2 gap-2">
-        {/* LEFT PANE (Tabs: Description, Solutions, Editorial, Submissions) */}
-        <div className={`w-full lg:w-1/2 flex flex-col rounded-xl overflow-hidden border ${borderCol} ${bgPane} shadow-sm`}>
+      {/* WORKSPACE: FULL-WIDTH PROBLEM VIEW FOR ADMIN, DUAL-PANE WORKSPACE FOR STUDENTS */}
+      <div className={`flex-1 flex overflow-hidden p-2 gap-2 ${isAdmin ? 'justify-center max-w-5xl mx-auto w-full' : 'flex-col lg:flex-row'}`}>
+        {/* PROBLEM STATEMENT PANE */}
+        <div className={`flex flex-col rounded-xl overflow-hidden border ${borderCol} ${bgPane} shadow-sm ${isAdmin ? 'w-full' : 'w-full lg:w-1/2'}`}>
           {/* LeetCode Top Tabs Bar */}
           <div className={`h-10 border-b ${borderCol} px-3 flex items-center justify-between shrink-0 ${bgSubPane}`}>
             <div className="flex items-center gap-1">
@@ -918,8 +918,9 @@ export const ProblemDetailPage = () => {
           </div>
         </div>
 
-        {/* RIGHT PANE (CODE EDITOR & TESTCASE DRAWER IN LEETCODE SLEEK UI) */}
-        <div className={`w-full lg:w-1/2 flex flex-col rounded-xl overflow-hidden border ${borderCol} ${bgPane} shadow-sm`}>
+        {/* RIGHT PANE (CODE EDITOR & TESTCASE DRAWER IN LEETCODE SLEEK UI) - ONLY FOR CONTESTANTS / STUDENTS */}
+        {!isAdmin && (
+          <div className={`w-full lg:w-1/2 flex flex-col rounded-xl overflow-hidden border ${borderCol} ${bgPane} shadow-sm`}>
           {/* Top Bar: </> Code */}
           <div className={`h-10 border-b ${borderCol} px-4 flex items-center justify-between shrink-0 ${bgSubPane}`}>
             <div className="flex items-center gap-2">
@@ -1219,6 +1220,7 @@ export const ProblemDetailPage = () => {
             </div>
           </div>
         </div>
+      )}
       </div>
 
       {/* Code Viewer Modal for Submissions */}
