@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, Link, useNavigate, useLocation } from 'react-router-dom';
 import { problemApi } from '../api/problemApi';
 import { submissionApi } from '../api/submissionApi';
 import { useAuth } from '../context/AuthContext';
@@ -62,7 +62,9 @@ const highlightCode = (code, lang, isDark) => {
 export const ProblemDetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const { isAuthenticated, user, isAdmin } = useAuth();
+  const contestId = new URLSearchParams(location.search).get('contestId');
 
   // Problem data
   const [problem, setProblem] = useState(null);
@@ -417,10 +419,10 @@ export const ProblemDetailPage = () => {
               &lt;/&gt;
             </div>
             <span className={`font-bold text-sm tracking-tight ${textHead}`}>CodeXa</span>
-            {new URLSearchParams(location.search).get('contestId') && (
+            {contestId && (
               <span className="ml-2 inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-rose-500/20 text-rose-400 border border-rose-500/30">
                 <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse"></span>
-                Contest Arena
+                {isAdmin ? 'Contest Problem Preview' : 'Contest Arena'}
               </span>
             )}
           </div>
@@ -439,10 +441,10 @@ export const ProblemDetailPage = () => {
           </button>
 
           <Link
-            to={new URLSearchParams(location.search).get('contestId') ? `/contests/${new URLSearchParams(location.search).get('contestId')}` : '/problems'}
+            to={contestId ? `/contests/${contestId}` : isAdmin ? '/admin/problems' : '/problems'}
             className={`px-3 py-1 rounded-lg border ${borderCol} text-xs font-semibold ${textMuted} hover:${textHead} transition-colors`}
           >
-            {new URLSearchParams(location.search).get('contestId') ? 'Back to Arena' : 'Exit'}
+            {contestId ? 'Back to Arena' : 'Exit'}
           </Link>
         </div>
       </header>

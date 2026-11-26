@@ -319,7 +319,7 @@ export const ContestArenaPage = () => {
                     <div className="flex items-center gap-4 shrink-0 sm:self-center">
                       {isAdmin ? (
                         <Link
-                          to={`/problems/${cp.problemId}`}
+                          to={`/problems/${cp.problemId}?contestId=${contest.id}`}
                           className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl font-semibold text-xs text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-200 transition-all shadow-xs"
                         >
                           <Eye className="w-3.5 h-3.5 text-slate-500" />
