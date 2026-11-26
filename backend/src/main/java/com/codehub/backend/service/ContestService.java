@@ -111,6 +111,19 @@ public class ContestService {
         return mapToSummary(saved, null);
     }
 
+    @Transactional
+    public ContestDto.SummaryResponse startContestNow(Long contestId) {
+        Contest contest = contestRepository.findById(contestId)
+                .orElseThrow(() -> new RuntimeException("Contest not found with ID: " + contestId));
+
+        LocalDateTime now = LocalDateTime.now();
+        contest.setStartTime(now);
+        contest.setEndTime(now.plusMinutes(contest.getDurationMinutes()));
+        contest.setStatus(ContestStatus.LIVE);
+        Contest saved = contestRepository.save(contest);
+        return mapToSummary(saved, null);
+    }
+
     public List<ContestDto.SummaryResponse> getAllContests(User user) {
         List<Contest> all = contestRepository.findAllByOrderByStartTimeDesc();
         LocalDateTime now = LocalDateTime.now();

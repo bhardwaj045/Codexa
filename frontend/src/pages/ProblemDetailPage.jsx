@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { useParams, Link, useNavigate, useLocation } from 'react-router-dom';
 import { problemApi } from '../api/problemApi';
 import { submissionApi } from '../api/submissionApi';
+import { contestApi } from '../api/contestApi';
 import { useAuth } from '../context/AuthContext';
 import { getLeetCodeMetadata } from '../utils/leetcodeProblems';
 import { Play, Send, RotateCcw, ArrowLeft, History, Copy, Check, X, FileCode, Clock, Terminal, CheckCircle2, ChevronDown, ChevronUp, ThumbsUp, ThumbsDown, MessageSquare, Star, Share2, Maximize2, Code2, BookOpen, FileText, Lightbulb, Tag, Lock, Sun, Moon, Users, Eye } from 'lucide-react';
@@ -66,6 +68,7 @@ export const ProblemDetailPage = () => {
   const location = useLocation();
   const { isAuthenticated, user, isAdmin } = useAuth();
   const contestId = new URLSearchParams(location.search).get('contestId');
+  const [contest, setContest] = useState(null);
 
   // Problem data
   const [problem, setProblem] = useState(null);
@@ -129,6 +132,14 @@ export const ProblemDetailPage = () => {
       fetchProblemSubmissions();
     }
   }, [id, isAuthenticated]);
+
+  useEffect(() => {
+    if (contestId) {
+      contestApi.getContestDetail(contestId)
+        .then(res => setContest(res.data))
+        .catch(err => console.error('Failed to load contest details in problem page', err));
+    }
+  }, [contestId]);
 
   useEffect(() => {
     if (problem) {
@@ -355,6 +366,34 @@ export const ProblemDetailPage = () => {
         <p className="mt-4 text-sm font-medium text-slate-400">Loading Problem Workspace...</p>
       </div>
     );
+  }
+
+  // Strict check: if this problem is accessed in the context of a contest, contestants cannot access before start time
+  if (contest && !isAdmin) {
+    const contestStartMs = contest.startTime ? Date.parse(contest.startTime) : 0;
+    const isContestUpcoming = contest.status === 'PUBLISHED' || (contestStartMs > 0 && Date.now() < contestStartMs);
+    if (isContestUpcoming) {
+      return (
+        <div className={`h-screen flex flex-col items-center justify-center font-sans ${isDark ? 'bg-[#1A1A1A] text-white' : 'bg-[#F0F2F5] text-slate-900'} p-6 text-center space-y-6`}>
+          <div className="w-16 h-16 rounded-3xl bg-blue-50 text-blue-600 flex items-center justify-center mx-auto border border-blue-200 shadow-md">
+            <Lock className="w-8 h-8" />
+          </div>
+          <div className="space-y-2 max-w-md">
+            <h2 className="text-2xl font-extrabold tracking-tight">Contest Has Not Started Yet</h2>
+            <p className="text-sm text-slate-500 leading-relaxed">
+              "{contest.title}" is currently in waiting room status. Challenges, problem descriptions, test cases, and code editors unlock automatically at the scheduled contest start time.
+            </p>
+          </div>
+          <Link
+            to={`/contests/${contestId}`}
+            className="px-6 py-2.5 rounded-xl bg-[#0D684D] hover:bg-[#0A543E] text-white font-semibold text-sm shadow-md transition-all hover:scale-105 inline-flex items-center gap-2"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            <span>Back to Contest Waiting Room</span>
+          </Link>
+        </div>
+      );
+    }
   }
 
   // LeetCode formatted examples
@@ -1206,9 +1245,9 @@ export const ProblemDetailPage = () => {
       )}
       </div>
 
-      {/* Code Viewer Modal for Submissions */}
-      {selectedSubmissionCode && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
+      {/* Code Viewer Modal for Submissions (Rendered at document.body for full-screen edge-to-edge blur) */}
+      {selectedSubmissionCode && createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-950/80 backdrop-blur-md p-4">
           <div className={`${bgPane} border ${borderCol} rounded-2xl shadow-2xl max-w-2xl w-full p-6 space-y-4`}>
             <div className={`flex items-center justify-between border-b ${borderCol} pb-3`}>
               <div className="flex items-center gap-3">
@@ -1220,14 +1259,14 @@ export const ProblemDetailPage = () => {
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => copyModalCode(selectedSubmissionCode.sourceCode || '')}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border ${borderCol} text-xs font-semibold ${textHead} hover:${bgSubPane} transition-colors`}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border ${borderCol} text-xs font-semibold ${textHead} hover:${bgSubPane} transition-colors cursor-pointer`}
                 >
                   {copiedCode ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
                   <span>{copiedCode ? 'Copied!' : 'Copy'}</span>
                 </button>
                 <button
                   onClick={() => setSelectedSubmissionCode(null)}
-                  className={`p-1 rounded-lg ${textMuted} hover:${textHead}`}
+                  className={`p-1 rounded-lg ${textMuted} hover:${textHead} cursor-pointer`}
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -1258,20 +1297,21 @@ export const ProblemDetailPage = () => {
                     }
                     setSelectedSubmissionCode(null);
                   }}
-                  className="px-4 py-1.5 rounded-xl bg-[#2CBB5D] hover:bg-[#25A050] text-white font-semibold transition-colors"
+                  className="px-4 py-1.5 rounded-xl bg-[#2CBB5D] hover:bg-[#25A050] text-white font-semibold transition-colors cursor-pointer"
                 >
                   Restore to Editor
                 </button>
                 <button
                   onClick={() => setSelectedSubmissionCode(null)}
-                  className={`px-4 py-1.5 rounded-xl border ${borderCol} ${textHead} hover:${bgSubPane} font-semibold transition-colors`}
+                  className={`px-4 py-1.5 rounded-xl border ${borderCol} ${textHead} hover:${bgSubPane} font-semibold transition-colors cursor-pointer`}
                 >
                   Close
                 </button>
               </div>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
       {/* LIVE PROCTORING & ANTI-CHEAT FOR CONTESTANTS DURING CONTEST */}
       {contestId && !isAdmin && (

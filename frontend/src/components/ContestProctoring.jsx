@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { 
   Camera, 
   CameraOff, 
@@ -343,9 +344,9 @@ export const ContestProctoring = ({
         </div>
       </div>
 
-      {/* 2. PROMINENT PROCTORING WARNING MODAL (Appears on Warnings 1-4) */}
-      {currentWarning && !isBanned && (
-        <div className="fixed inset-0 z-50 bg-slate-950/75 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in zoom-in-95 duration-150">
+      {/* 2. PROMINENT PROCTORING WARNING MODAL (Appears on Warnings 1-4, Rendered at document.body for full-screen edge-to-edge blur) */}
+      {currentWarning && !isBanned && createPortal(
+        <div className="fixed inset-0 z-[9999] bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in zoom-in-95 duration-150">
           <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border-2 border-rose-500 space-y-5 text-center">
             <div className="w-14 h-14 rounded-2xl bg-rose-100 text-rose-600 flex items-center justify-center mx-auto shadow-sm">
               <ShieldAlert className="w-8 h-8 animate-bounce" />
@@ -376,17 +377,18 @@ export const ContestProctoring = ({
 
             <button
               onClick={() => setCurrentWarning(null)}
-              className="w-full py-3 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-sm shadow-md transition-all hover:scale-[1.02] active:scale-95"
+              className="w-full py-3 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-sm shadow-md transition-all hover:scale-[1.02] active:scale-95 cursor-pointer"
             >
               I Understand ({currentWarning.remaining} Warnings Remaining)
             </button>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
-      {/* 3. 1-MONTH BAN DISQUALIFICATION MODAL (Triggered at 5 warnings) */}
-      {isBanned && (
-        <div className="fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in zoom-in-95 duration-200">
+      {/* 3. 1-MONTH BAN DISQUALIFICATION MODAL (Triggered at 5 warnings, Rendered at document.body for full-screen edge-to-edge blur) */}
+      {isBanned && createPortal(
+        <div className="fixed inset-0 z-[9999] bg-slate-950/90 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in zoom-in-95 duration-200">
           <div className="bg-white rounded-3xl max-w-lg w-full p-8 shadow-2xl border-2 border-rose-600 text-center space-y-6">
             <div className="w-16 h-16 rounded-2xl bg-rose-100 text-rose-600 flex items-center justify-center mx-auto shadow-sm">
               <Ban className="w-9 h-9 animate-pulse" />
@@ -425,12 +427,13 @@ export const ContestProctoring = ({
               Exit to Dashboard
             </a>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
-      {/* 4. CAMERA PERMISSION REQUIRED DIALOG */}
-      {showPermissionModal && cameraStatus === 'denied' && !isBanned && (
-        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-xs flex items-center justify-center p-4">
+      {/* 4. CAMERA PERMISSION REQUIRED DIALOG (Rendered at document.body for full-screen edge-to-edge blur) */}
+      {showPermissionModal && cameraStatus === 'denied' && !isBanned && createPortal(
+        <div className="fixed inset-0 z-[9999] bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-amber-300 space-y-5 text-center">
             <div className="w-14 h-14 rounded-2xl bg-amber-100 text-amber-600 flex items-center justify-center mx-auto">
               <Camera className="w-7 h-7" />
@@ -451,19 +454,20 @@ export const ContestProctoring = ({
             <div className="flex flex-col gap-2 pt-2">
               <button
                 onClick={startCamera}
-                className="w-full py-2.5 rounded-xl bg-[#0D684D] hover:bg-[#0A543E] text-white font-bold text-sm shadow-sm transition-all"
+                className="w-full py-2.5 rounded-xl bg-[#0D684D] hover:bg-[#0A543E] text-white font-bold text-sm shadow-sm transition-all cursor-pointer"
               >
                 Allow / Reconnect Camera
               </button>
               <button
                 onClick={() => setShowPermissionModal(false)}
-                className="w-full py-2 rounded-xl border border-slate-200 text-slate-600 font-semibold text-xs hover:bg-slate-50 transition-colors"
+                className="w-full py-2 rounded-xl border border-slate-200 text-slate-600 font-semibold text-xs hover:bg-slate-50 transition-colors cursor-pointer"
               >
                 Continue Anyway (Flagged for Review)
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   );

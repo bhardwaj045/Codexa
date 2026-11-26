@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { dashboardApi } from '../api/dashboardApi';
 import { AppLayout } from '../components/AppLayout';
 import { Users, Search, X } from 'lucide-react';
@@ -145,15 +146,15 @@ export const AdminUsersPage = () => {
           )}
         </div>
 
-        {/* DETAILS MODAL */}
-        {selectedUser && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-            <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-md w-full p-6 space-y-4">
+        {/* DETAILS MODAL (Rendered at document.body for full-screen edge-to-edge blur) */}
+        {selectedUser && createPortal(
+          <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-950/80 backdrop-blur-md p-4 animate-in fade-in duration-150">
+            <div className="bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-md w-full p-6 space-y-4">
               <div className="flex items-center justify-between border-b border-slate-100 pb-3">
                 <h3 className="text-base font-bold text-slate-900">User Profile</h3>
                 <button
                   onClick={() => setSelectedUser(null)}
-                  className="text-slate-400 hover:text-slate-600 p-1 rounded-lg"
+                  className="text-slate-400 hover:text-slate-600 p-1 rounded-lg cursor-pointer"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -183,13 +184,14 @@ export const AdminUsersPage = () => {
               <div className="pt-2 flex justify-end">
                 <button
                   onClick={() => setSelectedUser(null)}
-                  className="px-4 py-2 rounded-xl bg-[#0D684D] text-white text-xs font-semibold"
+                  className="px-4 py-2 rounded-xl bg-[#0D684D] hover:bg-[#0A543E] text-white text-xs font-semibold cursor-pointer"
                 >
                   Close
                 </button>
               </div>
             </div>
-          </div>
+          </div>,
+          document.body
         )}
       </div>
     </AppLayout>

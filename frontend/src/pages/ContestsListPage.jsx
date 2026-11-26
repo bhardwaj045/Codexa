@@ -69,43 +69,58 @@ export const ContestsListPage = () => {
     }
   };
 
+  const getContestTimingState = (contest) => {
+    const now = Date.now();
+    const startMs = contest?.startTime ? Date.parse(contest.startTime) : 0;
+    const endMs = contest?.endTime ? Date.parse(contest.endTime) : 0;
+    
+    // Strict timing: if scheduled start time is in future, it is strictly UPCOMING (Waiting Room)
+    const isUpcoming = contest?.status === 'PUBLISHED' || (startMs > 0 && now < startMs);
+    const isFinished = contest?.status === 'COMPLETED' || (endMs > 0 && now >= endMs);
+    const isLive = !isUpcoming && !isFinished && contest?.status === 'LIVE';
+
+    return { isUpcoming, isLive, isFinished };
+  };
+
   const filteredContests = contests.filter((c) => {
-    if (filterTab === 'LIVE') return c.status === 'LIVE';
-    if (filterTab === 'UPCOMING') return c.status === 'PUBLISHED';
-    if (filterTab === 'COMPLETED') return c.status === 'COMPLETED';
+    const { isUpcoming, isLive, isFinished } = getContestTimingState(c);
+    if (filterTab === 'LIVE') return isLive;
+    if (filterTab === 'UPCOMING') return isUpcoming;
+    if (filterTab === 'COMPLETED') return isFinished;
     return true;
   });
 
-  const getStatusBadge = (status) => {
-    switch (status) {
-      case 'LIVE':
-        return (
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-rose-50 text-rose-600 border border-rose-200 animate-pulse">
-            <span className="w-2 h-2 rounded-full bg-rose-600"></span>
-            LIVE NOW
-          </span>
-        );
-      case 'PUBLISHED':
-        return (
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-blue-50 text-blue-600 border border-blue-200">
-            <Clock className="w-3.5 h-3.5" />
-            UPCOMING
-          </span>
-        );
-      case 'COMPLETED':
-        return (
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-600 border border-slate-200">
-            <CheckCircle className="w-3.5 h-3.5 text-slate-500" />
-            FINISHED
-          </span>
-        );
-      default:
-        return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200">
-            DRAFT
-          </span>
-        );
+  const getStatusBadge = (contest) => {
+    const { isUpcoming, isLive, isFinished } = getContestTimingState(contest);
+    if (isLive) {
+      return (
+        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-rose-50 text-rose-600 border border-rose-200 animate-pulse">
+          <span className="w-2 h-2 rounded-full bg-rose-600"></span>
+          LIVE NOW
+        </span>
+      );
     }
+    if (isUpcoming) {
+      return (
+        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-blue-50 text-blue-600 border border-blue-200">
+          <Clock className="w-3.5 h-3.5" />
+          UPCOMING
+        </span>
+      );
+    }
+    if (isFinished) {
+      return (
+        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-600 border border-slate-200">
+          <CheckCircle className="w-3.5 h-3.5 text-slate-500" />
+          FINISHED
+        </span>
+      );
+    }
+    return (
+      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200">
+        DRAFT
+      </span>
+    );
   };
 
   const formatCountdown = (targetDate) => {
@@ -219,9 +234,7 @@ export const ContestsListPage = () => {
         ) : (
           <div className="grid grid-cols-1 gap-6">
             {filteredContests.map((contest) => {
-              const isLive = contest.status === 'LIVE';
-              const isUpcoming = contest.status === 'PUBLISHED';
-              const isFinished = contest.status === 'COMPLETED';
+              const { isUpcoming, isLive, isFinished } = getContestTimingState(contest);
 
               return (
                 <div
@@ -237,7 +250,7 @@ export const ContestsListPage = () => {
                     {/* LEFT METRICS */}
                     <div className="space-y-4 flex-1">
                       <div className="flex flex-wrap items-center gap-3">
-                        {getStatusBadge(contest.status)}
+                        {getStatusBadge(contest)}
                         <span className="text-xs font-semibold px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700">
                           ⏱ {contest.durationMinutes} Minutes
                         </span>
@@ -286,7 +299,7 @@ export const ContestsListPage = () => {
                             {formatCountdown(contest.endTime)}
                           </div>
                         </div>
-                      ) : contest.status === 'PUBLISHED' ? (
+                      ) : isUpcoming ? (
                         <div className="space-y-1 text-left lg:text-right">
                           <p className="text-[11px] font-bold tracking-wider uppercase text-blue-600">Starts In</p>
                           <div className="font-mono text-lg sm:text-xl font-bold text-blue-700">

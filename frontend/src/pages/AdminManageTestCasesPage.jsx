@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useParams, Link } from 'react-router-dom';
 import { problemApi } from '../api/problemApi';
 import { testCaseApi } from '../api/testCaseApi';
@@ -213,17 +214,17 @@ export const AdminManageTestCasesPage = () => {
           )}
         </div>
 
-        {/* MODAL */}
-        {modalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-            <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-lg w-full p-6 space-y-4">
+        {/* MODAL (Rendered at document.body for full-screen edge-to-edge blur) */}
+        {modalOpen && createPortal(
+          <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-950/80 backdrop-blur-md p-4 animate-in fade-in duration-150">
+            <div className="bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-lg w-full p-6 space-y-4">
               <div className="flex items-center justify-between border-b border-slate-100 pb-3">
                 <h3 className="text-base font-bold text-slate-900">
                   {editingCase ? 'Edit Test Case' : 'Add Test Case'}
                 </h3>
                 <button
                   onClick={() => setModalOpen(false)}
-                  className="text-slate-400 hover:text-slate-600 p-1 rounded-lg"
+                  className="text-slate-400 hover:text-slate-600 p-1 rounded-lg cursor-pointer"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -265,7 +266,7 @@ export const AdminManageTestCasesPage = () => {
                     onChange={(e) => setIsHidden(e.target.checked)}
                     className="w-4 h-4 rounded text-emerald-600 border-slate-300"
                   />
-                  <label htmlFor="modalHidden" className="text-xs font-semibold text-slate-700 select-none">
+                  <label htmlFor="modalHidden" className="text-xs font-semibold text-slate-700 select-none cursor-pointer">
                     Hidden Test Case (Judge Only - hidden from problem description)
                   </label>
                 </div>
@@ -274,21 +275,22 @@ export const AdminManageTestCasesPage = () => {
                   <button
                     type="button"
                     onClick={() => setModalOpen(false)}
-                    className="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 text-xs font-semibold hover:bg-slate-50"
+                    className="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 text-xs font-semibold hover:bg-slate-50 cursor-pointer"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={saving}
-                    className="px-5 py-2 rounded-xl bg-[#0D684D] hover:bg-[#0A543E] text-white text-xs font-semibold shadow-sm"
+                    className="px-5 py-2 rounded-xl bg-[#0D684D] hover:bg-[#0A543E] text-white text-xs font-semibold shadow-sm cursor-pointer"
                   >
                     {saving ? 'Saving...' : 'Save Test Case'}
                   </button>
                 </div>
               </form>
             </div>
-          </div>
+          </div>,
+          document.body
         )}
       </div>
     </AppLayout>

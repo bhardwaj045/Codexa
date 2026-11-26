@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { contestApi } from '../api/contestApi';
 import { useAuth } from '../context/AuthContext';
@@ -709,9 +710,9 @@ export const ContestArenaPage = () => {
           </div>
         )}
 
-        {/* ADMIN READ-ONLY PROBLEM PREVIEW MODAL */}
-        {previewProblem && (
-          <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+        {/* ADMIN READ-ONLY PROBLEM PREVIEW MODAL (Rendered at document.body for full-screen edge-to-edge blur) */}
+        {previewProblem && createPortal(
+          <div className="fixed inset-0 z-[9999] bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
             <div className="bg-white rounded-3xl max-w-2xl w-full p-6 shadow-2xl border border-slate-200 space-y-5 max-h-[85vh] overflow-y-auto animate-in zoom-in-95">
               <div className="flex items-center justify-between border-b border-slate-100 pb-3">
                 <div className="flex items-center gap-2">
@@ -723,7 +724,7 @@ export const ContestArenaPage = () => {
                     <p className="text-[11px] text-slate-500">{previewProblem.topic} • {previewProblem.points} Points • {previewProblem.difficulty}</p>
                   </div>
                 </div>
-                <button onClick={() => setPreviewProblem(null)} className="p-1 rounded-lg text-slate-400 hover:text-slate-600">
+                <button onClick={() => setPreviewProblem(null)} className="p-1 rounded-lg text-slate-400 hover:text-slate-600 cursor-pointer">
                   <X className="w-5 h-5" />
                 </button>
               </div>
@@ -753,13 +754,14 @@ export const ContestArenaPage = () => {
                 </Link>
                 <button
                   onClick={() => setPreviewProblem(null)}
-                  className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs"
+                  className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs cursor-pointer"
                 >
                   Close
                 </button>
               </div>
             </div>
-          </div>
+          </div>,
+          document.body
         )}
 
         {/* LIVE WEBCAM PROCTORING WIDGET FOR CONTESTANTS DURING LIVE CONTEST */}

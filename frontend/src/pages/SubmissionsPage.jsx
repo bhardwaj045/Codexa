@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { Link } from 'react-router-dom';
 import { submissionApi } from '../api/submissionApi';
 import { StatusBadge } from '../components/Badge';
@@ -141,10 +142,10 @@ export const SubmissionsPage = () => {
           )}
         </div>
 
-        {/* View Code Modal */}
-        {selectedSubmission && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-            <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-3xl w-full p-6 space-y-4">
+        {/* View Code Modal (Rendered at document.body for full-screen edge-to-edge blur) */}
+        {selectedSubmission && createPortal(
+          <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-950/80 backdrop-blur-md p-4 animate-in fade-in duration-150">
+            <div className="bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-3xl w-full p-6 space-y-4">
               <div className="flex items-center justify-between border-b border-slate-100 pb-3">
                 <div className="flex items-center gap-3">
                   <h3 className="text-base font-bold text-slate-900">
@@ -155,7 +156,7 @@ export const SubmissionsPage = () => {
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => copyCode(selectedSubmission.sourceCode || '')}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-medium text-slate-700 hover:bg-slate-50 transition-colors"
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-medium text-slate-700 hover:bg-slate-50 transition-colors cursor-pointer"
                   >
                     {copiedCode ? (
                       <>
@@ -171,7 +172,7 @@ export const SubmissionsPage = () => {
                   </button>
                   <button
                     onClick={() => setSelectedSubmission(null)}
-                    className="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg"
+                    className="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg cursor-pointer"
                   >
                     <X className="w-5 h-5" />
                   </button>
@@ -190,13 +191,14 @@ export const SubmissionsPage = () => {
                 <span>Execution Time: <b className="text-slate-800">{selectedSubmission.executionTimeMs || 0} ms</b></span>
                 <button
                   onClick={() => setSelectedSubmission(null)}
-                  className="px-4 py-1.5 rounded-xl bg-[#0D684D] text-white font-semibold hover:bg-[#0A543E] transition-colors"
+                  className="px-4 py-1.5 rounded-xl bg-[#0D684D] text-white font-semibold hover:bg-[#0A543E] transition-colors cursor-pointer"
                 >
                   Close
                 </button>
               </div>
             </div>
-          </div>
+          </div>,
+          document.body
         )}
       </div>
     </AppLayout>

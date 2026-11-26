@@ -55,6 +55,16 @@ public class ContestController {
         return ResponseEntity.ok(contestService.publishContest(id));
     }
 
+    @PostMapping("/{id}/start-now")
+    public ResponseEntity<?> startContestNow(
+            @PathVariable Long id,
+            @AuthenticationPrincipal User user) {
+        if (user == null || user.getUserRole() != UserRole.ADMIN) {
+            return ResponseEntity.status(403).body(Map.of("message", "Only administrators can start contests."));
+        }
+        return ResponseEntity.ok(contestService.startContestNow(id));
+    }
+
     @PostMapping("/{id}/problems")
     public ResponseEntity<?> assignProblems(
             @PathVariable Long id,

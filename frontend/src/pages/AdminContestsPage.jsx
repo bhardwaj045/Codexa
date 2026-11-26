@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { Link, useNavigate } from 'react-router-dom';
 import { contestApi } from '../api/contestApi';
 import { problemApi } from '../api/problemApi';
@@ -18,7 +19,8 @@ import {
   FileCode,
   Layers,
   Flame,
-  ArrowRight
+  ArrowRight,
+  Play
 } from 'lucide-react';
 
 export const AdminContestsPage = () => {
@@ -82,10 +84,13 @@ export const AdminContestsPage = () => {
     }
 
     try {
+      // Send local formatted ISO datetime (YYYY-MM-DDTHH:mm:ss) without UTC distortion so contest starts at exact scheduled local time
+      const formattedStartTime = startTime.length === 16 ? `${startTime}:00` : startTime;
+
       await contestApi.createContest({
         title,
         description,
-        startTime: new Date(startTime).toISOString(),
+        startTime: formattedStartTime,
         durationMinutes: parseInt(durationMinutes) || 120,
         problemIds: selectedProblemIds
       });
@@ -98,6 +103,19 @@ export const AdminContestsPage = () => {
     } catch (err) {
       console.error(err);
       setActionError(err.response?.data?.message || 'Failed to create contest.');
+    }
+  };
+
+  const handleStartNow = async (contestId) => {
+    if (window.confirm('Do you want to start this contest immediately now? Contestants will be able to enter the live arena and solve challenges.')) {
+      try {
+        await contestApi.startContestNow(contestId);
+        setActionSuccess('Contest started immediately! Arena is now live.');
+        fetchInitialData();
+      } catch (err) {
+        console.error(err);
+        setActionError(err.response?.data?.message || 'Failed to start contest.');
+      }
     }
   };
 
@@ -264,6 +282,17 @@ export const AdminContestsPage = () => {
                               </button>
                             )}
 
+                            {c.status === 'PUBLISHED' && (
+                              <button
+                                onClick={() => handleStartNow(c.id)}
+                                className="px-3 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white font-semibold text-xs transition-colors shadow-sm inline-flex items-center gap-1"
+                                title="Start contest immediately before scheduled time"
+                              >
+                                <Play className="w-3 h-3 fill-current" />
+                                <span>Start Now</span>
+                              </button>
+                            )}
+
                             <Link
                               to={`/admin/contests/${c.id}/monitor`}
                               className="px-3.5 py-1.5 rounded-lg bg-[#0D684D] hover:bg-[#0A543E] text-white font-semibold text-xs transition-colors inline-flex items-center gap-1.5 shadow-xs"
@@ -282,9 +311,9 @@ export const AdminContestsPage = () => {
           </div>
         </div>
 
-        {/* CREATE CONTEST MODAL */}
-        {showModal && (
-          <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+        {/* CREATE CONTEST MODAL (Mounted at document.body for full-screen edge-to-edge blur) */}
+        {showModal && createPortal(
+          <div className="fixed inset-0 z-[9999] bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
             <div className="bg-white rounded-3xl max-w-2xl w-full p-6 sm:p-8 shadow-2xl border border-slate-200 max-h-[90vh] overflow-y-auto space-y-6 animate-in zoom-in-95">
               <div className="flex items-center justify-between border-b border-slate-100 pb-4">
                 <div className="flex items-center gap-2">
@@ -464,7 +493,8 @@ export const AdminContestsPage = () => {
                 </div>
               </form>
             </div>
-          </div>
+          </div>,
+          document.body
         )}
       </div>
     </AppLayout>

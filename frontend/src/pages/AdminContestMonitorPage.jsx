@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { useParams, Link } from 'react-router-dom';
 import { contestApi } from '../api/contestApi';
 import { AppLayout } from '../components/AppLayout';
@@ -34,7 +35,8 @@ import {
   Activity,
   UserX,
   UserCheck,
-  Lock
+  Lock,
+  Play
 } from 'lucide-react';
 
 export const AdminContestMonitorPage = () => {
@@ -997,9 +999,9 @@ export const AdminContestMonitorPage = () => {
           </div>
         )}
 
-        {/* MODAL: FULLSCREEN LIVE WEBCAM VIDEO STREAM DIALOG */}
-        {selectedLiveStudent && (
-          <div className="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in zoom-in-95 duration-150">
+        {/* MODAL: FULLSCREEN LIVE WEBCAM VIDEO STREAM DIALOG (Rendered at document.body for full-screen edge-to-edge blur) */}
+        {selectedLiveStudent && createPortal(
+          <div className="fixed inset-0 z-[9999] bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in zoom-in-95 duration-150">
             <div className="bg-slate-900 rounded-3xl max-w-2xl w-full border border-slate-800 shadow-2xl overflow-hidden flex flex-col text-white">
               {/* Modal Header */}
               <div className="px-6 py-4 bg-slate-950 border-b border-slate-800 flex items-center justify-between">
@@ -1176,12 +1178,13 @@ export const AdminContestMonitorPage = () => {
                 </div>
               </div>
             </div>
-          </div>
+          </div>,
+          document.body
         )}
 
-        {/* MODAL: SUBMISSION CODE VIEWER */}
-        {selectedSub && (
-          <div className="fixed inset-0 z-50 bg-slate-950/75 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in zoom-in-95 duration-150">
+        {/* MODAL: SUBMISSION CODE VIEWER (Rendered at document.body for full-screen edge-to-edge blur) */}
+        {selectedSub && createPortal(
+          <div className="fixed inset-0 z-[9999] bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in zoom-in-95 duration-150">
             <div className="bg-white rounded-3xl max-w-3xl w-full border border-slate-200 shadow-2xl overflow-hidden flex flex-col max-h-[85vh]">
               <div className="px-6 py-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
                 <div>
@@ -1225,7 +1228,8 @@ export const AdminContestMonitorPage = () => {
                 </pre>
               </div>
             </div>
-          </div>
+          </div>,
+          document.body
         )}
       </div>
     </AppLayout>
