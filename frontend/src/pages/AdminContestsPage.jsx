@@ -52,14 +52,17 @@ export const AdminContestsPage = () => {
       setLoading(true);
       const [contestRes, probRes] = await Promise.all([
         contestApi.getAllContests(),
-        problemApi.getAllProblems()
+        problemApi.getProblems()
       ]);
       setContests(contestRes.data || []);
-      setAllProblems(probRes.data || []);
+      const problemsList = probRes.data || [];
+      setAllProblems(problemsList);
 
-      // Pre-select first 5 problems for quick 1-click creation
-      if (probRes.data && probRes.data.length >= 5) {
-        setSelectedProblemIds(probRes.data.slice(0, 5).map(p => p.id));
+      // Pre-select first 5 problems by default
+      if (problemsList.length >= 5) {
+        setSelectedProblemIds(problemsList.slice(0, 5).map(p => p.id));
+      } else {
+        setSelectedProblemIds(problemsList.map(p => p.id));
       }
     } catch (err) {
       console.error('Failed to load admin contest data', err);
@@ -110,37 +113,54 @@ export const AdminContestsPage = () => {
   };
 
   const toggleProblemSelection = (id) => {
+    setActionError('');
     if (selectedProblemIds.includes(id)) {
       setSelectedProblemIds(selectedProblemIds.filter(pid => pid !== id));
     } else {
-      if (selectedProblemIds.length >= 5) {
-        setActionError('A standard contest typically features 5 problems. You can uncheck another to replace.');
-      }
       setSelectedProblemIds([...selectedProblemIds, id]);
     }
   };
 
+  const selectFirst5 = () => {
+    setActionError('');
+    setSelectedProblemIds(allProblems.slice(0, 5).map(p => p.id));
+  };
+
+  const clearAllProblems = () => {
+    setSelectedProblemIds([]);
+  };
+
   return (
-    <AppLayout title="Admin Contests Management">
+    <AppLayout title="Manage Contests">
       <div className="max-w-6xl mx-auto space-y-6 pb-16">
         {/* HEADER */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-black text-slate-900 tracking-tight">
+            <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">
               Manage Contests
             </h1>
             <p className="text-sm text-slate-500 mt-1">
-              Create 2-hour coding contests, assign 5 problems, publish and monitor submissions & rankings.
+              Create, publish, and monitor 2-hour competitive coding contests.
             </p>
           </div>
 
-          <button
-            onClick={() => setShowModal(true)}
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#0D684D] hover:bg-[#0A543E] text-white font-semibold text-sm shadow-md transition-all hover:scale-105 shrink-0"
-          >
-            <Plus className="w-4 h-4" />
-            <span>Create New Contest</span>
-          </button>
+          <div className="flex items-center gap-3">
+            <span className="inline-flex items-center px-4 py-2 rounded-xl bg-emerald-50 border border-emerald-100 text-[#0D684D] text-xs font-bold">
+              {contests.length} Contests
+            </span>
+            <button
+              onClick={() => {
+                if (allProblems.length >= 5 && selectedProblemIds.length === 0) {
+                  setSelectedProblemIds(allProblems.slice(0, 5).map(p => p.id));
+                }
+                setShowModal(true);
+              }}
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#0D684D] hover:bg-[#0A543E] text-white font-semibold text-sm shadow-md transition-all hover:scale-105 shrink-0"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Create New Contest</span>
+            </button>
+          </div>
         </div>
 
         {/* FEEDBACK MESSAGES */}
@@ -344,40 +364,87 @@ export const AdminContestsPage = () => {
                     <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
                       Select Contest Problems ({selectedProblemIds.length} Selected)
                     </label>
-                    <span className="text-xs text-emerald-600 font-semibold">Recommended: Exactly 5 problems</span>
+                    <div className="flex items-center gap-3">
+                      <button
+                        type="button"
+                        onClick={selectFirst5}
+                        className="text-xs font-semibold text-emerald-600 hover:text-emerald-700 underline"
+                      >
+                        Select First 5
+                      </button>
+                      <button
+                        type="button"
+                        onClick={clearAllProblems}
+                        className="text-xs text-slate-400 hover:text-slate-600 underline"
+                      >
+                        Clear
+                      </button>
+                    </div>
                   </div>
 
-                  <div className="border border-slate-200 rounded-xl divide-y divide-slate-100 max-h-48 overflow-y-auto bg-slate-50/50">
-                    {allProblems.map((p) => {
-                      const isSelected = selectedProblemIds.includes(p.id);
-                      return (
-                        <div
-                          key={p.id}
-                          onClick={() => toggleProblemSelection(p.id)}
-                          className={`px-4 py-2.5 flex items-center justify-between cursor-pointer text-xs transition-colors ${
-                            isSelected ? 'bg-emerald-50 text-emerald-950 font-semibold' : 'hover:bg-slate-100 text-slate-700'
-                          }`}
+                  <div className="border border-slate-300 rounded-2xl max-h-56 overflow-y-auto bg-slate-50/70 p-1.5 space-y-1">
+                    {allProblems.length === 0 ? (
+                      <div className="p-6 text-center text-xs text-slate-500 space-y-2">
+                        <p>Loading problems...</p>
+                        <button
+                          type="button"
+                          onClick={fetchInitialData}
+                          className="px-3 py-1 rounded bg-slate-200 text-slate-700 font-semibold"
                         >
-                          <div className="flex items-center gap-2.5">
-                            <input
-                              type="checkbox"
-                              checked={isSelected}
-                              onChange={() => {}}
-                              className="rounded text-emerald-600 focus:ring-emerald-500"
-                            />
-                            <span>{p.title}</span>
+                          Retry Loading Problems
+                        </button>
+                      </div>
+                    ) : (
+                      allProblems.map((p, idx) => {
+                        const isSelected = selectedProblemIds.includes(p.id);
+                        const selectedIndex = selectedProblemIds.indexOf(p.id);
+                        return (
+                          <div
+                            key={p.id}
+                            onClick={() => toggleProblemSelection(p.id)}
+                            className={`px-3.5 py-2.5 rounded-xl flex items-center justify-between cursor-pointer text-xs transition-all select-none border ${
+                              isSelected
+                                ? 'bg-emerald-50/90 border-emerald-300 text-emerald-950 font-semibold shadow-xs'
+                                : 'bg-white border-slate-200/80 hover:border-slate-300 text-slate-700'
+                            }`}
+                          >
+                            <div className="flex items-center gap-3">
+                              <input
+                                type="checkbox"
+                                checked={isSelected}
+                                onChange={() => {}}
+                                className="w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500 cursor-pointer pointer-events-none"
+                              />
+                              <div className="flex items-center gap-2">
+                                {isSelected && (
+                                  <span className="w-5 h-5 rounded-full bg-emerald-600 text-white flex items-center justify-center text-[10px] font-bold">
+                                    {String.fromCharCode(65 + (selectedIndex < 26 ? selectedIndex : 0))}
+                                  </span>
+                                )}
+                                <span className="text-sm font-semibold text-slate-900">{p.title}</span>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <span className={`text-[10px] font-bold px-2 py-0.5 rounded border ${
+                                p.difficulty === 'EASY'
+                                  ? 'bg-emerald-100/60 text-emerald-800 border-emerald-200'
+                                  : p.difficulty === 'MEDIUM'
+                                  ? 'bg-amber-100/60 text-amber-800 border-amber-200'
+                                  : 'bg-rose-100/60 text-rose-800 border-rose-200'
+                              }`}>
+                                {p.difficulty}
+                              </span>
+                              <span className="text-slate-300">•</span>
+                              <span className="text-xs text-slate-500 font-normal">{p.topic}</span>
+                            </div>
                           </div>
-                          <div className="flex items-center gap-2">
-                            <span className="text-[10px] px-1.5 py-0.5 rounded bg-white border border-slate-200 text-slate-600">
-                              {p.difficulty}
-                            </span>
-                            <span className="text-slate-400">•</span>
-                            <span className="text-[11px] text-slate-500">{p.topic}</span>
-                          </div>
-                        </div>
-                      );
-                    })}
+                        );
+                      })
+                    )}
                   </div>
+                  <p className="text-[11px] text-slate-500 mt-1.5">
+                    Click any problem to toggle selection. First 5 problems become Problem A, B, C, D, E.
+                  </p>
                 </div>
 
                 <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
