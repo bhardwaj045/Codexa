@@ -184,6 +184,11 @@ public class ContestService {
         Contest contest = contestRepository.findById(contestId)
                 .orElseThrow(() -> new RuntimeException("Contest not found with ID: " + contestId));
 
+        if (user != null && user.getUserRole() == UserRole.ADMIN) {
+            // Admins are contest organizers and do not register as contestants
+            return mapToSummary(contest, user);
+        }
+
         if (!contestParticipantRepository.existsByContestIdAndUserId(contestId, user.getId())) {
             ContestParticipant cp = ContestParticipant.builder()
                     .contest(contest)
@@ -201,6 +206,10 @@ public class ContestService {
     @Transactional
     public void handleContestSubmission(Submission submission) {
         if (submission.getContestId() == null) return;
+        if (submission.getUser() != null && submission.getUser().getUserRole() == UserRole.ADMIN) {
+            // Admins do not score in contest leaderboards
+            return;
+        }
 
         Long contestId = submission.getContestId();
         Contest contest = contestRepository.findById(contestId).orElse(null);
@@ -257,6 +266,9 @@ public class ContestService {
         int rank = 1;
 
         for (ContestParticipant p : participants) {
+            if (p.getUser() != null && p.getUser().getUserRole() == UserRole.ADMIN) {
+                continue; // Do not include administrators on the contestant leaderboard
+            }
             Map<Long, ContestDto.ProblemScoreStatus> problemMap = new HashMap<>();
 
             for (ContestProblem cp : cpList) {

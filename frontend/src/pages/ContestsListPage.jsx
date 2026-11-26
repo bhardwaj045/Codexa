@@ -280,7 +280,7 @@ export const ContestsListPage = () => {
                       )}
 
                       <div className="flex items-center gap-3 w-full sm:w-auto">
-                        {!contest.isRegistered && !isFinished ? (
+                        {!isAdmin && !contest.isRegistered && !isFinished ? (
                           <button
                             onClick={(e) => handleJoin(contest.id, e)}
                             disabled={registeringId === contest.id}
@@ -298,7 +298,7 @@ export const ContestsListPage = () => {
                               : 'bg-slate-100 hover:bg-slate-200 text-slate-800'
                           }`}
                         >
-                          <span>{isLive ? 'Enter Arena' : isFinished ? 'View Results' : 'Contest Details'}</span>
+                          <span>{isAdmin ? 'Monitor Contest' : isLive ? 'Enter Arena' : isFinished ? 'View Results' : 'Contest Details'}</span>
                           <ArrowRight className="w-4 h-4" />
                         </Link>
                       </div>

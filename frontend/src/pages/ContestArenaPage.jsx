@@ -71,8 +71,8 @@ export const ContestArenaPage = () => {
       setLeaderboard(lbRes.data || []);
       setSubmissions(subRes.data || []);
 
-      // If user is logged in and not registered, auto-join for smooth experience
-      if (user && !contestRes.data.isRegistered && contestRes.data.status === 'LIVE') {
+      // If student is logged in and not registered, auto-join for smooth experience
+      if (user && !isAdmin && !contestRes.data.isRegistered && contestRes.data.status === 'LIVE') {
         try {
           await contestApi.joinContest(id);
           const updated = await contestApi.getContestDetail(id);
@@ -176,6 +176,12 @@ export const ContestArenaPage = () => {
                 <span className="text-xs font-semibold px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-300 border border-emerald-500/20">
                   🧩 5 Challenges
                 </span>
+                {isAdmin && (
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                    <Eye className="w-3.5 h-3.5" />
+                    ADMIN (MONITOR ONLY)
+                  </span>
+                )}
               </div>
 
               <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight">
@@ -257,7 +263,9 @@ export const ContestArenaPage = () => {
           <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
             <div className="px-6 py-4 bg-slate-50/70 border-b border-slate-200 flex items-center justify-between">
               <h3 className="font-bold text-slate-800 text-sm">Contest Problem Set</h3>
-              <span className="text-xs text-slate-500">Each challenge awards points upon getting Accepted</span>
+              <span className="text-xs text-slate-500">
+                {isAdmin ? 'Contest problem set. Admins monitor submissions and rankings.' : 'Each challenge awards points upon getting Accepted'}
+              </span>
             </div>
 
             <div className="divide-y divide-slate-100">
@@ -309,17 +317,27 @@ export const ContestArenaPage = () => {
                     </div>
 
                     <div className="flex items-center gap-4 shrink-0 sm:self-center">
-                      <Link
-                        to={`/problems/${cp.problemId}?contestId=${contest.id}`}
-                        className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-xs sm:text-sm transition-all shadow-sm ${
-                          isAccepted
-                            ? 'bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100'
-                            : 'bg-[#0D684D] hover:bg-[#0A543E] text-white hover:scale-105'
-                        }`}
-                      >
-                        <span>{isAccepted ? 'Review Solution' : 'Solve Challenge'}</span>
-                        <ExternalLink className="w-3.5 h-3.5" />
-                      </Link>
+                      {isAdmin ? (
+                        <Link
+                          to={`/problems/${cp.problemId}`}
+                          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl font-semibold text-xs text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-200 transition-all shadow-xs"
+                        >
+                          <Eye className="w-3.5 h-3.5 text-slate-500" />
+                          <span>View Problem</span>
+                        </Link>
+                      ) : (
+                        <Link
+                          to={`/problems/${cp.problemId}?contestId=${contest.id}`}
+                          className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-xs sm:text-sm transition-all shadow-sm ${
+                            isAccepted
+                              ? 'bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100'
+                              : 'bg-[#0D684D] hover:bg-[#0A543E] text-white hover:scale-105'
+                          }`}
+                        >
+                          <span>{isAccepted ? 'Review Solution' : 'Solve Challenge'}</span>
+                          <ExternalLink className="w-3.5 h-3.5" />
+                        </Link>
+                      )}
                     </div>
                   </div>
                 );
