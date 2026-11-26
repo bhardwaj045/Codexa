@@ -244,10 +244,10 @@ export const ContestArenaPage = () => {
                   </span>
                 )}
                 <span className="text-xs font-semibold px-2.5 py-1 rounded-lg bg-slate-800/80 text-slate-300 border border-slate-700">
-                  ⏱ 2 Hours Duration
+                  ⏱ {contest.durationMinutes} Minutes Duration
                 </span>
                 <span className="text-xs font-semibold px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-300 border border-emerald-500/20">
-                  🧩 5 Challenges
+                  🧩 {contest.problems?.length || 0} Challenges
                 </span>
                 {isAdmin && (
                   <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
@@ -318,7 +318,7 @@ export const ContestArenaPage = () => {
         {/* ARENA NAVIGATION TABS */}
         <div className="flex items-center gap-3 border-b border-slate-200">
           {[
-            { id: 'PROBLEMS', label: 'Challenges (5 Problems)', icon: Code2, count: contest.problems?.length || 5 },
+            { id: 'PROBLEMS', label: 'Challenges', icon: Code2, count: contest.problems?.length || 0 },
             { id: 'LEADERBOARD', label: 'Live Leaderboard', icon: Trophy, count: leaderboard.length },
             { id: 'SUBMISSIONS', label: 'Submissions Feed', icon: Send, count: submissions.length },
           ].map((tab) => {
@@ -597,7 +597,7 @@ export const ContestArenaPage = () => {
                               {entry.score}
                             </td>
                             <td className="py-4 px-4 text-center text-slate-700">
-                              {entry.problemsSolved} / {contest.problems?.length || 5}
+                              {entry.problemsSolved} / {contest.problems?.length || 0}
                             </td>
                             <td className="py-4 px-4 text-center font-mono text-xs text-slate-500">
                               {entry.penaltyMinutes}m

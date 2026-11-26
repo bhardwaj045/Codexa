@@ -185,7 +185,7 @@ export const AdminContestMonitorPage = () => {
                   </span>
                 )}
                 <span className="text-xs font-semibold px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300 border border-slate-700">
-                  ⏱ 2 Hours Duration
+                  ⏱ {contest.durationMinutes} Minutes Duration
                 </span>
               </div>
 
@@ -239,7 +239,7 @@ export const AdminContestMonitorPage = () => {
 
           <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-xs space-y-1">
             <p className="text-xs font-bold uppercase tracking-wider text-slate-400">Challenges</p>
-            <p className="text-2xl font-extrabold text-purple-600">{contest.problems?.length || 5}</p>
+            <p className="text-2xl font-extrabold text-purple-600">{contest.problems?.length || 0}</p>
             <p className="text-[11px] text-slate-500 font-medium">Problems in contest</p>
           </div>
         </div>
@@ -249,7 +249,7 @@ export const AdminContestMonitorPage = () => {
           {[
             { id: 'LEADERBOARD', label: 'Live Leaderboard', icon: Trophy, count: leaderboard.length },
             { id: 'SUBMISSIONS', label: 'Real-Time Submissions Feed', icon: Send, count: submissions.length },
-            { id: 'PROBLEMS', label: 'Assigned Problems (5)', icon: Code2, count: contest.problems?.length || 5 },
+            { id: 'PROBLEMS', label: 'Assigned Problems', icon: Code2, count: contest.problems?.length || 0 },
           ].map((tab) => {
             const Icon = tab.icon;
             const active = activeTab === tab.id;
@@ -367,7 +367,7 @@ export const AdminContestMonitorPage = () => {
                             {entry.score}
                           </td>
                           <td className="py-4 px-4 text-center text-slate-700">
-                            {entry.problemsSolved} / {contest.problems?.length || 5}
+                            {entry.problemsSolved} / {contest.problems?.length || 0}
                           </td>
                           <td className="py-4 px-4 text-center font-mono text-xs text-slate-500">
                             {entry.penaltyMinutes}m

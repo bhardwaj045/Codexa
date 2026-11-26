@@ -67,14 +67,6 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('codehub_user');
   };
 
-  const quickLogin = async (type) => {
-    if (type === 'admin') {
-      return await login('admin@codexa.com', 'CodeXa@Admin2026!');
-    } else {
-      return await login('student@codexa.com', 'CodeXa@Student2026!');
-    }
-  };
-
   return (
     <AuthContext.Provider
       value={{
@@ -87,7 +79,6 @@ export const AuthProvider = ({ children }) => {
         login,
         register,
         logout,
-        quickLogin,
       }}
     >
       {children}

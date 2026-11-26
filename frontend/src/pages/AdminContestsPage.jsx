@@ -77,7 +77,7 @@ export const AdminContestsPage = () => {
     setActionSuccess('');
 
     if (selectedProblemIds.length === 0) {
-      setActionError('Please select at least 1 problem (preferably 5 problems) for the contest.');
+      setActionError('Please select at least 1 problem for the contest.');
       return;
     }
 
@@ -354,11 +354,11 @@ export const AdminContestsPage = () => {
                       onChange={(e) => setDurationMinutes(e.target.value)}
                       className="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm font-mono"
                     />
-                    <p className="text-[11px] text-slate-500 mt-1">Default 120 minutes = 2 Hours duration</p>
+                    <p className="text-[11px] text-slate-500 mt-1">Contest duration in minutes (e.g. 120)</p>
                   </div>
                 </div>
 
-                {/* 5-PROBLEM PICKER */}
+                {/* PROBLEM PICKER */}
                 <div>
                   <div className="flex items-center justify-between mb-2">
                     <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
@@ -443,7 +443,7 @@ export const AdminContestsPage = () => {
                     )}
                   </div>
                   <p className="text-[11px] text-slate-500 mt-1.5">
-                    Click any problem to toggle selection. First 5 problems become Problem A, B, C, D, E.
+                    Click any problem to toggle selection. Selected problems will be assigned contest letters (Problem A, B, C...).
                   </p>
                 </div>
 

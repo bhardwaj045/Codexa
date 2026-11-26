@@ -129,7 +129,7 @@ export const ContestsListPage = () => {
                 Competitive Coding Contests
               </h1>
               <p className="text-slate-300 text-sm sm:text-base leading-relaxed">
-                Test your algorithmic speed and accuracy under timed pressure. Solve 5 problems in 2 hours, earn ranking points, and measure yourself against global programmers.
+                Test your algorithmic speed and accuracy under timed pressure. Solve algorithmic problems under timed conditions, earn ranking points, and measure yourself against global programmers.
               </p>
             </div>
 
@@ -220,10 +220,10 @@ export const ContestsListPage = () => {
                       <div className="flex flex-wrap items-center gap-3">
                         {getStatusBadge(contest.status)}
                         <span className="text-xs font-semibold px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700">
-                          ⏱ {contest.durationMinutes} Minutes (2 Hours)
+                          ⏱ {contest.durationMinutes} Minutes
                         </span>
                         <span className="text-xs font-semibold px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-200">
-                          🧩 {contest.totalProblems || 5} Challenges
+                          🧩 {contest.totalProblems || contest.problems?.length || 0} Challenges
                         </span>
                       </div>
 
