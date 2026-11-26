@@ -45,6 +45,9 @@ public class Submission {
     @Column(name = "memory_used_kb")
     private Long memoryUsedKb;
 
+    @Column(name = "contest_id")
+    private Long contestId;
+
     @CreationTimestamp
     @Column(name = "submitted_at", nullable = false, updatable = false)
     private LocalDateTime submittedAt;

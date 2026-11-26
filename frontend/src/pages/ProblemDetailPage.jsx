@@ -283,10 +283,13 @@ export const ProblemDetailPage = () => {
     setHasRun(true);
     setActiveConsoleTab('result');
     try {
+      const searchParams = new URLSearchParams(location.search);
+      const contestId = searchParams.get('contestId');
       const payload = {
         problemId: problem.id,
         programmingLanguage: language,
         sourceCode: getExecutableCode(sourceCode, language, problem.title),
+        contestId: contestId ? parseInt(contestId) : null,
       };
       const res = await submissionApi.submit(payload);
       setSubmitResult(res.data);
@@ -414,6 +417,12 @@ export const ProblemDetailPage = () => {
               &lt;/&gt;
             </div>
             <span className={`font-bold text-sm tracking-tight ${textHead}`}>CodeXa</span>
+            {new URLSearchParams(location.search).get('contestId') && (
+              <span className="ml-2 inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-rose-500/20 text-rose-400 border border-rose-500/30">
+                <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse"></span>
+                Contest Arena
+              </span>
+            )}
           </div>
         </div>
 
@@ -430,10 +439,10 @@ export const ProblemDetailPage = () => {
           </button>
 
           <Link
-            to="/problems"
+            to={new URLSearchParams(location.search).get('contestId') ? `/contests/${new URLSearchParams(location.search).get('contestId')}` : '/problems'}
             className={`px-3 py-1 rounded-lg border ${borderCol} text-xs font-semibold ${textMuted} hover:${textHead} transition-colors`}
           >
-            Exit
+            {new URLSearchParams(location.search).get('contestId') ? 'Back to Arena' : 'Exit'}
           </Link>
         </div>
       </header>

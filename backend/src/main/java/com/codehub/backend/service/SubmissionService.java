@@ -23,6 +23,7 @@ public class SubmissionService {
     private final TestCaseRepository testCaseRepository;
     private final LeaderboardService leaderboardService;
     private final JudgeEngine judgeEngine;
+    private final ContestService contestService;
 
     public SubmissionDto.RunResponse runCode(SubmissionDto.RunRequest req) {
         Problem problem = problemRepository.findById(req.getProblemId())
@@ -146,6 +147,7 @@ public class SubmissionService {
                 .problem(problem)
                 .programmingLanguage(req.getProgrammingLanguage())
                 .sourceCode(req.getSourceCode())
+                .contestId(req.getContestId())
                 .submissionStatus(SubmissionStatus.RUNNING)
                 .build();
 
@@ -226,6 +228,11 @@ public class SubmissionService {
             leaderboardService.updateUserProgress(user, problem);
         }
 
+        // Update contest stats if submission belongs to a contest
+        if (finishedSubmission.getContestId() != null) {
+            contestService.handleContestSubmission(finishedSubmission);
+        }
+
         return mapToDto(finishedSubmission, allCases.size(), passedCount, details);
     }
 
@@ -264,6 +271,7 @@ public class SubmissionService {
                 .executionTimeMs(s.getExecutionTimeMs())
                 .memoryUsedKb(s.getMemoryUsedKb())
                 .submittedAt(s.getSubmittedAt())
+                .contestId(s.getContestId())
                 .sourceCode(s.getSourceCode())
                 .totalTestCases(totalCases)
                 .passedTestCases(passedCases)

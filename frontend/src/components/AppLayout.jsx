@@ -12,7 +12,8 @@ import {
   Users,
   Settings,
   LogOut,
-  Bell
+  Bell,
+  Flame
 } from 'lucide-react';
 
 export const AppLayout = ({ children, title }) => {
@@ -28,6 +29,7 @@ export const AppLayout = ({ children, title }) => {
   const studentNavItems = [
     { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
     { name: 'Problems', path: '/problems', icon: Code2 },
+    { name: 'Contests', path: '/contests', icon: Flame },
     { name: 'My Submissions', path: '/submissions', icon: FileText },
     { name: 'My Progress', path: '/progress', icon: TrendingUp },
     { name: 'Leaderboard', path: '/leaderboard', icon: Trophy },
@@ -35,6 +37,7 @@ export const AppLayout = ({ children, title }) => {
 
   const adminNavItems = [
     { name: 'Dashboard', path: '/admin', icon: LayoutDashboard },
+    { name: 'Manage Contests', path: '/admin/contests', icon: Flame },
     { name: 'Add Problem', path: '/admin/problems/new', icon: PlusCircle },
     { name: 'Manage Problems', path: '/admin/problems', icon: FolderKanban },
     { name: 'Manage Users', path: '/admin/users', icon: Users },

@@ -26,6 +26,8 @@ public class SubmissionDto {
 
         @NotBlank(message = "Source code is required")
         private String sourceCode;
+
+        private Long contestId;
     }
 
     @Getter
@@ -97,6 +99,7 @@ public class SubmissionDto {
         private Long memoryUsedKb;
         private LocalDateTime submittedAt;
         private String sourceCode;
+        private Long contestId;
         private int totalTestCases;
         private int passedTestCases;
         private List<ResultDetail> results;

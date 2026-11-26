@@ -10,14 +10,38 @@ export const Navbar = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo (Left) */}
-          <Link to="/" className="flex items-center gap-2.5 group shrink-0">
-            <div className="w-9 h-9 rounded-xl bg-[#0D684D] flex items-center justify-center text-white shadow-sm group-hover:scale-105 transition-transform font-mono font-bold text-sm">
-              &lt;/&gt;
+          <div className="flex items-center gap-8">
+            <Link to="/" className="flex items-center gap-2.5 group shrink-0">
+              <div className="w-9 h-9 rounded-xl bg-[#0D684D] flex items-center justify-center text-white shadow-sm group-hover:scale-105 transition-transform font-mono font-bold text-sm">
+                &lt;/&gt;
+              </div>
+              <span className="text-xl font-bold tracking-tight text-slate-900 group-hover:text-[#0D684D] transition-colors">
+                CodeXa
+              </span>
+            </Link>
+
+            <div className="hidden md:flex items-center gap-1">
+              <Link
+                to="/problems"
+                className="px-3.5 py-1.5 text-xs sm:text-sm font-semibold text-slate-600 hover:text-[#0D684D] hover:bg-slate-50 rounded-lg transition-colors"
+              >
+                Problems
+              </Link>
+              <Link
+                to="/contests"
+                className="px-3.5 py-1.5 text-xs sm:text-sm font-semibold text-slate-600 hover:text-[#0D684D] hover:bg-slate-50 rounded-lg transition-colors inline-flex items-center gap-1.5"
+              >
+                <span>Contests</span>
+                <span className="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-rose-50 text-rose-600 border border-rose-200">Live</span>
+              </Link>
+              <Link
+                to="/leaderboard"
+                className="px-3.5 py-1.5 text-xs sm:text-sm font-semibold text-slate-600 hover:text-[#0D684D] hover:bg-slate-50 rounded-lg transition-colors"
+              >
+                Leaderboard
+              </Link>
             </div>
-            <span className="text-xl font-bold tracking-tight text-slate-900 group-hover:text-[#0D684D] transition-colors">
-              CodeXa
-            </span>
-          </Link>
+          </div>
 
           {/* Right Header Controls: Sign In & Sign Up */}
           <div className="hidden md:flex items-center gap-3">

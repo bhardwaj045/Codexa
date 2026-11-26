@@ -28,6 +28,9 @@ public class DataInitializer implements CommandLineRunner {
         private final TestCaseRepository testCaseRepository;
         private final SubmissionRepository submissionRepository;
         private final LeaderboardEntryRepository leaderboardEntryRepository;
+        private final ContestRepository contestRepository;
+        private final ContestProblemRepository contestProblemRepository;
+        private final ContestParticipantRepository contestParticipantRepository;
         private final PasswordEncoder passwordEncoder;
 
         @Override
@@ -38,6 +41,7 @@ public class DataInitializer implements CommandLineRunner {
                 cleanupDemoSubmissions();
 
                 if (problemRepository.count() >= 11) {
+                        ensureDefaultContest();
                         log.info("Database already seeded with 11 problems. Skipping data initialization.");
                         return;
                 }
@@ -291,6 +295,8 @@ public class DataInitializer implements CommandLineRunner {
                 leaderboardEntryRepository.save(LeaderboardEntry.builder().user(student).problemsSolved(0)
                                 .totalPoints(0).rankPosition(3).build());
 
+                ensureDefaultContest();
+
                 log.info("CodeXa platform seeded with exact 11 challenges successfully!");
         }
 
@@ -347,5 +353,70 @@ public class DataInitializer implements CommandLineRunner {
                 admin.setPasswordHash(passwordEncoder.encode(password));
                 admin.setUserRole(UserRole.ADMIN);
                 userRepository.save(admin);
+        }
+
+        private void ensureDefaultContest() {
+                if (contestRepository.count() > 0) {
+                        return;
+                }
+
+                User admin = userRepository.findAll().stream()
+                                .filter(u -> u.getUserRole() == UserRole.ADMIN)
+                                .findFirst()
+                                .orElse(null);
+                if (admin == null) return;
+
+                List<Problem> problems = problemRepository.findAll();
+                if (problems.size() < 5) return;
+
+                java.time.LocalDateTime now = java.time.LocalDateTime.now();
+                Contest contest = Contest.builder()
+                                .title("CodeXa Biweekly Contest 1")
+                                .description("Join CodeXa's premier 2-hour competitive programming sprint! Solve 5 algorithmic challenges ranging from easy to medium-hard, race against the live timer, and compete for top ranks on the live leaderboard.")
+                                .startTime(now.minusMinutes(20)) // Started 20 minutes ago
+                                .endTime(now.plusMinutes(100))    // 100 minutes remaining
+                                .durationMinutes(120)            // 2 Hours
+                                .status(ContestStatus.LIVE)
+                                .createdBy(admin)
+                                .build();
+
+                Contest savedContest = contestRepository.save(contest);
+
+                // Assign 5 problems with increasing point values (A:100, B:200, C:200, D:300, E:400)
+                int[] points = {100, 200, 200, 300, 400};
+                for (int i = 0; i < 5; i++) {
+                        ContestProblem cp = ContestProblem.builder()
+                                        .contest(savedContest)
+                                        .problem(problems.get(i))
+                                        .problemOrder(i + 1)
+                                        .points(points[i])
+                                        .build();
+                        contestProblemRepository.save(cp);
+                }
+
+                // Seed contestants
+                userRepository.findByEmail("priya@codexa.com").ifPresent(priya -> {
+                        contestParticipantRepository.save(ContestParticipant.builder()
+                                        .contest(savedContest)
+                                        .user(priya)
+                                        .score(500)
+                                        .problemsSolved(3)
+                                        .penaltySeconds(42 * 60L)
+                                        .rankPosition(1)
+                                        .build());
+                });
+
+                userRepository.findByEmail("david@codexa.com").ifPresent(david -> {
+                        contestParticipantRepository.save(ContestParticipant.builder()
+                                        .contest(savedContest)
+                                        .user(david)
+                                        .score(300)
+                                        .problemsSolved(2)
+                                        .penaltySeconds(35 * 60L)
+                                        .rankPosition(2)
+                                        .build());
+                });
+
+                log.info("Default 2-Hour Coding Contest seeded with 5 problems successfully!");
         }
 }

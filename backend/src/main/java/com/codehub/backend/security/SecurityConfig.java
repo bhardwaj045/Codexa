@@ -43,6 +43,7 @@ public class SecurityConfig {
                         // Public Endpoints
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/problems/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/contests/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/leaderboard/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/dashboard/registration-limit").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/submissions/run").permitAll()

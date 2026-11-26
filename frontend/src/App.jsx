@@ -20,6 +20,9 @@ import { AdminManageProblemsPage } from './pages/AdminManageProblemsPage';
 import { AdminProblemFormPage } from './pages/AdminProblemFormPage';
 import { AdminManageTestCasesPage } from './pages/AdminManageTestCasesPage';
 import { AdminUsersPage } from './pages/AdminUsersPage';
+import { ContestsListPage } from './pages/ContestsListPage';
+import { ContestArenaPage } from './pages/ContestArenaPage';
+import { AdminContestsPage } from './pages/AdminContestsPage';
 
 const AppLayoutWrapper = () => {
   const location = useLocation();
@@ -31,6 +34,7 @@ const AppLayoutWrapper = () => {
   const isAppLayoutPage = location.pathname.startsWith('/dashboard') || 
                           location.pathname.startsWith('/admin') || 
                           location.pathname.startsWith('/progress') ||
+                          location.pathname.startsWith('/contests') ||
                           location.pathname === '/problems' ||
                           location.pathname === '/submissions' ||
                           location.pathname === '/leaderboard';
@@ -47,6 +51,8 @@ const AppLayoutWrapper = () => {
           <Route path="/" element={<HomePage />} />
           <Route path="/problems" element={<ProblemsPage />} />
           <Route path="/problems/:id" element={<ProblemDetailPage />} />
+          <Route path="/contests" element={<ContestsListPage />} />
+          <Route path="/contests/:id" element={<ContestArenaPage />} />
           <Route path="/leaderboard" element={<LeaderboardPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
@@ -61,6 +67,7 @@ const AppLayoutWrapper = () => {
           {/* Admin Protected Routes */}
           <Route element={<ProtectedRoute requireAdmin={true} />}>
             <Route path="/admin" element={<AdminDashboardPage />} />
+            <Route path="/admin/contests" element={<AdminContestsPage />} />
             <Route path="/admin/users" element={<AdminUsersPage />} />
             <Route path="/admin/problems" element={<AdminManageProblemsPage />} />
             <Route path="/admin/problems/new" element={<AdminProblemFormPage />} />

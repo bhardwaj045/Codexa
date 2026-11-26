@@ -17,6 +17,9 @@ A full-stack, enterprise-grade coding practice platform built based on the provi
   - `submissions`
   - `submission_results`
   - `leaderboard_entries`
+  - `contests`
+  - `contest_problems`
+  - `contest_participants`
 - **Judge Engine**: Multi-language real-time code evaluation engine (executing JavaScript via Node.js 24, Java via JDK 25, Python, and C++) with input redirection, execution timing, memory measurement, output normalization, and hidden judge test case evaluation.
 
 ### Frontend
@@ -74,7 +77,23 @@ A full-stack, enterprise-grade coding practice platform built based on the provi
   - Full ranking table highlighting the logged-in user
   - Points system: Easy (10 pts), Medium (20 pts), Hard (30 pts)
 
-### 3. Admin Experience
+### 4. Competitive Coding Contests System
+- **Contest Catalog (`/contests`)**:
+  - Live, upcoming, and past contests with real-time countdown clocks.
+  - Duration (2 Hours), 5 challenges per contest, registered participants count.
+  - 1-Click registration and entry into live contest arenas.
+- **Contest Arena (`/contests/:id`)**:
+  - Live ticking 2-hour countdown timer.
+  - Problem set table (A, B, C, D, E) with points, difficulty, and solved status.
+  - Live contest scoreboard with ICPC/LeetCode scoring (Score + Penalty time).
+  - Real-time submissions feed.
+- **Contest Problem Workspace (`/problems/:id?contestId=:contestId`)**:
+  - Contest mode banner and direct return to arena.
+  - Live evaluation via JudgeEngine with automatic points, penalty, and leaderboard rank recalculation upon Accepted verdict.
+- **Admin Contest Management (`/admin/contests`)**:
+  - Create 2-hour contests with custom title, description, and start time.
+  - 5-Problem selector with point allocation (100, 200, 300, 400, 500).
+  - 1-Click contest publishing and live monitoring.
 - **Admin Dashboard (`/admin`)**:
   - Platform health overview: Total Users, Total Students, Total Admins, Total Problems, Submissions count, Platform Acceptance %
   - Problems breakdown by difficulty
