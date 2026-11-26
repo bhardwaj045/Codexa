@@ -374,7 +374,7 @@ export const AdminContestMonitorPage = () => {
                           </td>
 
                           {(contest.problems || []).map((cp) => {
-                            const pResult = entry.problemResults?.[cp.problemId];
+                            const pResult = entry.problemResults?.[cp.problemId] || entry.problemResults?.[String(cp.problemId)];
                             if (pResult?.solved) {
                               return (
                                 <td key={cp.id} className="py-4 px-3 text-center">

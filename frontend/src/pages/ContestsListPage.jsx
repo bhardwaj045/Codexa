@@ -291,14 +291,14 @@ export const ContestsListPage = () => {
                         ) : null}
 
                         <Link
-                          to={`/contests/${contest.id}`}
+                          to={isAdmin ? `/admin/contests/${contest.id}/monitor` : `/contests/${contest.id}`}
                           className={`w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all ${
-                            isLive
+                            isLive || isAdmin
                               ? 'bg-[#0D684D] hover:bg-[#0A543E] text-white shadow-md hover:scale-[1.02]'
                               : 'bg-slate-100 hover:bg-slate-200 text-slate-800'
                           }`}
                         >
-                          <span>{isAdmin ? 'Monitor Contest' : isLive ? 'Enter Arena' : isFinished ? 'View Results' : 'Contest Details'}</span>
+                          <span>{isAdmin ? 'Open Live Monitor' : isLive ? 'Enter Arena' : isFinished ? 'View Results' : 'Contest Details'}</span>
                           <ArrowRight className="w-4 h-4" />
                         </Link>
                       </div>

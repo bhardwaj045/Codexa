@@ -347,19 +347,28 @@ export const ProblemDetailPage = () => {
   const textMuted = isDark ? 'text-[#8A8A8A]' : 'text-slate-500';
   const textHead = isDark ? 'text-white' : 'text-slate-900';
 
+  if (loading || !problem) {
+    return (
+      <div className={`h-screen flex flex-col items-center justify-center font-sans ${isDark ? 'bg-[#1A1A1A] text-white' : 'bg-[#F0F2F5] text-slate-900'}`}>
+        <div className="w-10 h-10 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
+        <p className="mt-4 text-sm font-medium text-slate-400">Loading Problem Workspace...</p>
+      </div>
+    );
+  }
+
   // LeetCode formatted examples
   const examplesList = meta?.examples || [
     {
       id: 1,
-      input: problem.sampleInput || 'Standard test input',
-      output: problem.sampleOutput || 'Standard expected output',
+      input: problem?.sampleInput || 'Standard test input',
+      output: problem?.sampleOutput || 'Standard expected output',
       explanation: 'Computed according to problem specifications.'
     }
   ];
 
   // LeetCode formatted constraints
   const constraintsList = meta?.constraints || (
-    problem.problemConstraints 
+    problem?.problemConstraints 
       ? problem.problemConstraints.split('\n').filter(Boolean)
       : ['1 <= n <= 10^5']
   );
@@ -441,10 +450,10 @@ export const ProblemDetailPage = () => {
           </button>
 
           <Link
-            to={contestId ? `/contests/${contestId}` : isAdmin ? '/admin/problems' : '/problems'}
+            to={contestId ? (isAdmin ? `/admin/contests/${contestId}/monitor` : `/contests/${contestId}`) : isAdmin ? '/admin/problems' : '/problems'}
             className={`px-3 py-1 rounded-lg border ${borderCol} text-xs font-semibold ${textMuted} hover:${textHead} transition-colors`}
           >
-            {contestId ? 'Back to Arena' : 'Exit'}
+            {contestId ? (isAdmin ? 'Back to Monitor' : 'Back to Arena') : 'Exit'}
           </Link>
         </div>
       </header>
@@ -1047,14 +1056,24 @@ export const ProblemDetailPage = () => {
                   <span>Run</span>
                 </button>
 
-                <button
-                  onClick={handleSubmit}
-                  disabled={running || submitting}
-                  className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg bg-[#2CBB5D] hover:bg-[#25A050] text-white text-xs font-bold shadow-xs transition-transform active:scale-95 disabled:opacity-50"
-                >
-                  <Send className="w-3.5 h-3.5" />
-                  <span>Submit</span>
-                </button>
+                {contestId && isAdmin ? (
+                  <Link
+                    to={`/admin/contests/${contestId}/monitor`}
+                    className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg bg-[#0D684D] hover:bg-[#0A543E] text-white text-xs font-bold shadow-xs transition-transform active:scale-95"
+                  >
+                    <Eye className="w-3.5 h-3.5" />
+                    <span>Back to Monitor</span>
+                  </Link>
+                ) : (
+                  <button
+                    onClick={handleSubmit}
+                    disabled={running || submitting}
+                    className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg bg-[#2CBB5D] hover:bg-[#25A050] text-white text-xs font-bold shadow-xs transition-transform active:scale-95 disabled:opacity-50"
+                  >
+                    <Send className="w-3.5 h-3.5" />
+                    <span>Submit</span>
+                  </button>
+                )}
               </div>
             </div>
 

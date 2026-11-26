@@ -18,7 +18,9 @@ import {
   Award,
   Sparkles,
   RefreshCw,
-  Send
+  Send,
+  Radio,
+  Eye
 } from 'lucide-react';
 
 export const ContestArenaPage = () => {
@@ -148,7 +150,7 @@ export const ContestArenaPage = () => {
                 to={`/admin/contests/${contest.id}/monitor`}
                 className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-[#0D684D] hover:bg-[#0A543E] text-white font-semibold text-xs shadow-xs transition-all"
               >
-                <Eye className="w-3.5 h-3.5" />
+                <Radio className="w-3.5 h-3.5 text-emerald-300 animate-pulse" />
                 <span>Live Monitor Dashboard</span>
               </Link>
             )}
@@ -162,6 +164,32 @@ export const ContestArenaPage = () => {
             </button>
           </div>
         </div>
+
+        {/* ADMIN MONITORING NOTICE BANNER */}
+        {isAdmin && (
+          <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xs">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-[#0D684D] text-white flex items-center justify-center font-bold shrink-0">
+                <Eye className="w-5 h-5" />
+              </div>
+              <div>
+                <h4 className="font-bold text-slate-900 text-sm">
+                  Administrator Monitoring Mode
+                </h4>
+                <p className="text-xs text-slate-600">
+                  Admins organize and monitor contests; you do not need to solve problems. Use the live monitoring center to watch submissions and live scoreboard.
+                </p>
+              </div>
+            </div>
+            <Link
+              to={`/admin/contests/${contest.id}/monitor`}
+              className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-[#0D684D] hover:bg-[#0A543E] text-white font-bold text-xs shadow-sm transition-all shrink-0 hover:scale-105"
+            >
+              <Radio className="w-3.5 h-3.5 text-emerald-300 animate-pulse" />
+              <span>Open Live Monitor</span>
+            </Link>
+          </div>
+        )}
 
         {/* CONTEST HEADER ARENA BANNER */}
         <div className="relative overflow-hidden rounded-3xl bg-slate-900 text-white p-8 sm:p-10 shadow-xl border border-slate-800">
