@@ -142,14 +142,25 @@ export const ContestArenaPage = () => {
             <span>All Contests</span>
           </Link>
 
-          <button
-            onClick={handleRefresh}
-            disabled={refreshing}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-xs font-semibold text-slate-600 transition-all shadow-sm"
-          >
-            <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin text-emerald-600' : ''}`} />
-            <span>Refresh Standings</span>
-          </button>
+          <div className="flex items-center gap-2">
+            {isAdmin && (
+              <Link
+                to={`/admin/contests/${contest.id}/monitor`}
+                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-[#0D684D] hover:bg-[#0A543E] text-white font-semibold text-xs shadow-xs transition-all"
+              >
+                <Eye className="w-3.5 h-3.5" />
+                <span>Live Monitor Dashboard</span>
+              </Link>
+            )}
+            <button
+              onClick={handleRefresh}
+              disabled={refreshing}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-xs font-semibold text-slate-600 transition-all shadow-sm"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin text-emerald-600' : ''}`} />
+              <span>Refresh Standings</span>
+            </button>
+          </div>
         </div>
 
         {/* CONTEST HEADER ARENA BANNER */}

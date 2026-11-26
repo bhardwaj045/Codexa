@@ -265,8 +265,8 @@ export const AdminContestsPage = () => {
                             )}
 
                             <Link
-                              to={`/contests/${c.id}`}
-                              className="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs transition-colors inline-flex items-center gap-1"
+                              to={`/admin/contests/${c.id}/monitor`}
+                              className="px-3.5 py-1.5 rounded-lg bg-[#0D684D] hover:bg-[#0A543E] text-white font-semibold text-xs transition-colors inline-flex items-center gap-1.5 shadow-xs"
                             >
                               <Eye className="w-3.5 h-3.5" />
                               <span>Monitor</span>

@@ -23,6 +23,7 @@ import { AdminUsersPage } from './pages/AdminUsersPage';
 import { ContestsListPage } from './pages/ContestsListPage';
 import { ContestArenaPage } from './pages/ContestArenaPage';
 import { AdminContestsPage } from './pages/AdminContestsPage';
+import { AdminContestMonitorPage } from './pages/AdminContestMonitorPage';
 
 const AppLayoutWrapper = () => {
   const location = useLocation();
@@ -68,6 +69,7 @@ const AppLayoutWrapper = () => {
           <Route element={<ProtectedRoute requireAdmin={true} />}>
             <Route path="/admin" element={<AdminDashboardPage />} />
             <Route path="/admin/contests" element={<AdminContestsPage />} />
+            <Route path="/admin/contests/:id/monitor" element={<AdminContestMonitorPage />} />
             <Route path="/admin/users" element={<AdminUsersPage />} />
             <Route path="/admin/problems" element={<AdminManageProblemsPage />} />
             <Route path="/admin/problems/new" element={<AdminProblemFormPage />} />
