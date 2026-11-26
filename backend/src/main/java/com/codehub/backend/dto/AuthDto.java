@@ -19,6 +19,8 @@ public class AuthDto {
 
         @NotBlank(message = "Password is required")
         private String password;
+
+        private UserRole requestedRole;
     }
 
     @Getter
@@ -38,6 +40,8 @@ public class AuthDto {
         private String password;
 
         private UserRole userRole;
+
+        private String adminSecretKey;
     }
 
     @Getter

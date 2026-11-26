@@ -5,10 +5,12 @@ import { dashboardApi } from '../api/dashboardApi';
 import { ArrowLeft } from 'lucide-react';
 
 export const RegisterPage = () => {
+  const [role, setRole] = useState('STUDENT'); // 'STUDENT' or 'ADMIN'
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [adminSecretKey, setAdminSecretKey] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -29,14 +31,19 @@ export const RegisterPage = () => {
     fetchLimit();
   }, []);
 
-  const isRegistrationClosed = capacityInfo && (!capacityInfo.registrationEnabled || capacityInfo.remainingSpots <= 0);
+  const isRegistrationClosed = role === 'STUDENT' && capacityInfo && (!capacityInfo.registrationEnabled || capacityInfo.remainingSpots <= 0);
+
+  const handleRoleToggle = (selectedRole) => {
+    setRole(selectedRole);
+    setError('');
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
 
     if (isRegistrationClosed) {
-      setError('Registration is currently closed by the administrator.');
+      setError('Student registration is currently closed by the administrator.');
       return;
     }
 
@@ -45,19 +52,28 @@ export const RegisterPage = () => {
       return;
     }
 
+    if (role === 'ADMIN' && !adminSecretKey.trim()) {
+      setError("Administrator registration is restricted. Please enter the Admin Secret Key or switch to the 'Student' tab to register.");
+      return;
+    }
+
     setLoading(true);
     try {
-      await register(name, email, password, 'STUDENT');
+      const user = await register(name, email, password, role, role === 'ADMIN' ? adminSecretKey.trim() : null);
       const searchParams = new URLSearchParams(location.search);
       const redirectParam = searchParams.get('redirect');
       if (redirectParam) {
         navigate(redirectParam);
+      } else if (user.userRole === 'ADMIN') {
+        navigate('/admin');
       } else {
         navigate('/dashboard');
       }
     } catch (err) {
       if (err.response?.data?.message) {
         setError(err.response.data.message);
+      } else if (err.message) {
+        setError(err.message);
       } else if (err.code === 'ERR_NETWORK' || !err.response) {
         setError('Cannot connect to backend server. Please make sure the backend is running on http://localhost:8080.');
       } else {
@@ -160,7 +176,9 @@ export const RegisterPage = () => {
               Join CodeXa
             </h2>
             <p className="text-xs text-slate-500 mt-1">
-              Enter your details to create your student account.
+              {role === 'ADMIN'
+                ? 'Register a platform administrator account (requires Admin Secret Key).'
+                : 'Enter your details to create your student account and start coding.'}
             </p>
           </div>
 
@@ -169,6 +187,37 @@ export const RegisterPage = () => {
               {error}
             </div>
           )}
+
+          {/* Account Type Toggle */}
+          <div>
+            <label className="block text-xs font-semibold text-slate-700 mb-2">
+              Select account type to register
+            </label>
+            <div className="grid grid-cols-2 gap-2 p-1 bg-slate-50 border border-slate-200 rounded-xl">
+              <button
+                type="button"
+                onClick={() => handleRoleToggle('STUDENT')}
+                className={`py-2 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+                  role === 'STUDENT'
+                    ? 'bg-white text-[#0D684D] border border-emerald-300 shadow-sm'
+                    : 'text-slate-500 hover:text-slate-900'
+                }`}
+              >
+                Student
+              </button>
+              <button
+                type="button"
+                onClick={() => handleRoleToggle('ADMIN')}
+                className={`py-2 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+                  role === 'ADMIN'
+                    ? 'bg-white text-slate-900 border border-slate-300 shadow-sm'
+                    : 'text-slate-500 hover:text-slate-900'
+                }`}
+              >
+                Admin (Restricted)
+              </button>
+            </div>
+          </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Full Name */}
@@ -241,13 +290,39 @@ export const RegisterPage = () => {
               />
             </div>
 
+            {/* Admin Secret Key (Visible only when Admin role is selected) */}
+            {role === 'ADMIN' && (
+              <div className="space-y-1.5 p-3 rounded-xl bg-amber-50 border border-amber-200">
+                <label className="block text-xs font-bold text-amber-900">
+                  Admin Master Secret Key *
+                </label>
+                <input
+                  type="password"
+                  value={adminSecretKey}
+                  onChange={(e) => setAdminSecretKey(e.target.value)}
+                  placeholder="Enter administrator secret key"
+                  required
+                  className="w-full px-3 py-2 rounded-lg border border-amber-300 bg-white text-xs font-mono text-slate-900 focus:outline-none focus:border-amber-600"
+                />
+                <p className="text-[10px] text-amber-800 leading-relaxed">
+                  Administrator registration is restricted to authorized platform personnel. If you are a student or learner, please select <strong>Student</strong> above.
+                </p>
+              </div>
+            )}
+
             {/* Submit Button */}
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3.5 px-4 rounded-xl text-white text-sm font-semibold bg-[#0D684D] hover:bg-[#0A543E] shadow-sm transition-all flex items-center justify-center gap-1.5 active:scale-98"
+              className="w-full py-3.5 px-4 rounded-xl text-white text-sm font-semibold bg-[#0D684D] hover:bg-[#0A543E] shadow-sm transition-all flex items-center justify-center gap-1.5 active:scale-98 cursor-pointer"
             >
-              <span>{loading ? 'Creating account...' : 'Create Account →'}</span>
+              <span>
+                {loading
+                  ? 'Creating account...'
+                  : role === 'ADMIN'
+                  ? 'Register as Administrator →'
+                  : 'Create Student Account →'}
+              </span>
             </button>
           </form>
 

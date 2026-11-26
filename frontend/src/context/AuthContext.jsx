@@ -30,9 +30,23 @@ export const AuthProvider = ({ children }) => {
     checkAuth();
   }, [token]);
 
-  const login = async (email, password) => {
-    const res = await authApi.login({ email, password });
+  const login = async (email, password, requestedRole = null) => {
+    const payload = { email, password };
+    if (requestedRole) {
+      payload.requestedRole = requestedRole;
+    }
+    const res = await authApi.login(payload);
     const { token: jwt, id, name, email: userEmail, userRole } = res.data;
+
+    // Client-side safeguard against role spoofing
+    if (requestedRole && userRole !== requestedRole) {
+      if (requestedRole === 'ADMIN') {
+        throw new Error("Access Denied: This account is registered as a Student. Please switch to the 'Student' tab to log in.");
+      } else {
+        throw new Error("Access Denied: This account is registered as an Administrator. Please switch to the 'Admin' tab to log in.");
+      }
+    }
+
     const userData = { id, name, email: userEmail, userRole };
 
     setToken(jwt);
@@ -44,8 +58,12 @@ export const AuthProvider = ({ children }) => {
     return userData;
   };
 
-  const register = async (name, email, password, userRole = 'STUDENT') => {
-    const res = await authApi.register({ name, email, password, userRole });
+  const register = async (name, email, password, userRole = 'STUDENT', adminSecretKey = null) => {
+    const payload = { name, email, password, userRole };
+    if (adminSecretKey) {
+      payload.adminSecretKey = adminSecretKey;
+    }
+    const res = await authApi.register(payload);
     const { token: jwt, id, name: resName, email: userEmail, userRole: resRole } = res.data;
     const userData = { id, name: resName, email: userEmail, userRole: resRole };
 

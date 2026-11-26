@@ -21,5 +21,9 @@ export const ProtectedRoute = ({ requireAdmin = false }) => {
     return <Navigate to="/dashboard" replace />;
   }
 
+  if (!requireAdmin && isAdmin) {
+    return <Navigate to="/admin" replace />;
+  }
+
   return <Outlet />;
 };

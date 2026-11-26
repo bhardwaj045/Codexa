@@ -31,6 +31,10 @@ public class AuthService {
         UserRole role = request.getUserRole() != null ? request.getUserRole() : UserRole.STUDENT;
 
         if (role == UserRole.ADMIN) {
+            String requiredAdminKey = "CodeXa@AdminMaster2026";
+            if (request.getAdminSecretKey() == null || !request.getAdminSecretKey().trim().equals(requiredAdminKey)) {
+                throw new RuntimeException("Administrator Registration Restricted: Invalid or missing Admin Secret Key. Normal users must select 'Student' role to register.");
+            }
             long existingAdmins = userRepository.countByUserRole(UserRole.ADMIN);
             if (existingAdmins > 0) {
                 throw new RuntimeException("An administrator account already exists. Multiple admin accounts cannot be created.");
@@ -98,6 +102,15 @@ public class AuthService {
         }
         if (!matches) {
             throw new RuntimeException("Invalid email or password");
+        }
+
+        // Strict Role Match Verification: Prevent student accounts from entering when Admin is selected, and vice versa
+        if (request.getRequestedRole() != null && user.getUserRole() != request.getRequestedRole()) {
+            if (request.getRequestedRole() == UserRole.ADMIN) {
+                throw new RuntimeException("Access Denied: This account is a Student account, not an Administrator. Please switch to the 'Student' tab to sign in.");
+            } else {
+                throw new RuntimeException("Access Denied: This account is an Administrator account, not a Student. Please switch to the 'Admin' tab to sign in.");
+            }
         }
 
         String token = tokenProvider.generateToken(user.getEmail(), user.getUserRole().name());

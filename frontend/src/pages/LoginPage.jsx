@@ -10,7 +10,7 @@ export const LoginPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const { login } = useAuth();
+  const { login, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -19,6 +19,7 @@ export const LoginPage = () => {
 
   const handleRoleToggle = (selectedRole) => {
     setRole(selectedRole);
+    setError('');
   };
 
   const handleSubmit = async (e) => {
@@ -27,7 +28,21 @@ export const LoginPage = () => {
     setLoading(true);
 
     try {
-      const user = await login(email, password);
+      const user = await login(email, password, role);
+
+      // Strict enforcement: Ensure authenticated user role matches the selected role
+      if (role === 'ADMIN' && user.userRole !== 'ADMIN') {
+        logout();
+        setError("Access Denied: This account is a Student account, not an Administrator. Please select the 'Student' tab to sign in.");
+        return;
+      }
+
+      if (role === 'STUDENT' && user.userRole === 'ADMIN') {
+        logout();
+        setError("Access Denied: This account is an Administrator account, not a Student. Please select the 'Admin' tab to sign in.");
+        return;
+      }
+
       if (redirectParam) {
         navigate(redirectParam);
       } else if (user.userRole === 'ADMIN') {
@@ -38,6 +53,8 @@ export const LoginPage = () => {
     } catch (err) {
       if (err.response?.data?.message) {
         setError(err.response.data.message);
+      } else if (err.message) {
+        setError(err.message);
       } else if (err.code === 'ERR_NETWORK' || !err.response) {
         setError('Cannot connect to backend server. Please make sure the backend is running on http://localhost:8080.');
       } else {
