@@ -140,18 +140,17 @@ export const ContestsListPage = () => {
     <AppLayout title="Coding Contests">
       <div className="max-w-6xl mx-auto space-y-8 pb-12">
         {/* HERO BANNER */}
-        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-slate-900 via-emerald-950 to-slate-900 text-white p-8 sm:p-10 shadow-xl border border-emerald-900/30">
-          <div className="absolute top-0 right-0 -mr-16 -mt-16 w-80 h-80 rounded-full bg-emerald-500/10 blur-3xl pointer-events-none"></div>
+        <div className="relative overflow-hidden rounded-3xl bg-white text-slate-900 p-8 sm:p-10 shadow-sm border border-slate-200">
           <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div className="space-y-3 max-w-2xl">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 text-xs font-semibold">
-                <Flame className="w-4 h-4 text-emerald-400" />
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-[#0D684D] text-xs font-semibold">
+                <Flame className="w-4 h-4 text-[#0D684D]" />
                 <span>CodeXa Official Contest Arenas</span>
               </div>
-              <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight">
+              <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
                 Competitive Coding Contests
               </h1>
-              <p className="text-slate-300 text-sm sm:text-base leading-relaxed">
+              <p className="text-slate-600 text-sm sm:text-base leading-relaxed">
                 Test your algorithmic speed and accuracy under timed pressure. Solve algorithmic problems under timed conditions, earn ranking points, and measure yourself against global programmers.
               </p>
             </div>
@@ -160,7 +159,7 @@ export const ContestsListPage = () => {
               <div className="shrink-0">
                 <Link
                   to="/admin/contests"
-                  className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-semibold text-sm shadow-lg hover:shadow-emerald-500/25 transition-all"
+                  className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-[#0D684D] hover:bg-[#0a523d] text-white font-semibold text-sm shadow-sm hover:shadow transition-all"
                 >
                   <Plus className="w-4 h-4" />
                   Admin Contest Panel

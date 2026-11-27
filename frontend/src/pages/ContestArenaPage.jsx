@@ -252,93 +252,91 @@ export const ContestArenaPage = () => {
         )}
 
         {/* CONTEST HEADER ARENA BANNER */}
-        <div className="relative overflow-hidden rounded-3xl bg-slate-900 text-white p-8 sm:p-10 shadow-xl border border-slate-800">
-          <div className="absolute top-0 right-0 -mr-16 -mt-16 w-80 h-80 rounded-full bg-emerald-500/10 blur-3xl pointer-events-none"></div>
-
+        <div className="relative overflow-hidden rounded-3xl bg-white text-slate-900 p-8 sm:p-10 shadow-sm border border-slate-200">
           <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-8">
             <div className="space-y-3 max-w-2xl">
               <div className="flex flex-wrap items-center gap-3">
                 {isLive ? (
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-rose-500/20 text-rose-400 border border-rose-500/30 animate-pulse">
-                    <span className="w-2 h-2 rounded-full bg-rose-500"></span>
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-rose-50 text-rose-700 border border-rose-200 animate-pulse">
+                    <span className="w-2 h-2 rounded-full bg-rose-600"></span>
                     CONTEST IS LIVE • PROCTORED
                   </span>
                 ) : isUpcoming ? (
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-blue-500/20 text-blue-300 border border-blue-500/30">
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-blue-50 text-blue-700 border border-blue-200">
                     <Clock className="w-3.5 h-3.5" />
                     UPCOMING • WAITING ROOM
                   </span>
                 ) : (
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-slate-800 text-slate-300 border border-slate-700">
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-700 border border-slate-200">
                     <CheckCircle className="w-3.5 h-3.5" />
                     CONTEST FINISHED
                   </span>
                 )}
-                <span className="text-xs font-semibold px-2.5 py-1 rounded-lg bg-slate-800/80 text-slate-300 border border-slate-700">
+                <span className="text-xs font-semibold px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 border border-slate-200">
                   ⏱ {contest.durationMinutes} Minutes Duration
                 </span>
-                <span className="text-xs font-semibold px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-300 border border-emerald-500/20">
+                <span className="text-xs font-semibold px-2.5 py-1 rounded-lg bg-emerald-50 text-[#0D684D] border border-emerald-200">
                   🧩 {contest.problems?.length || 0} Challenges
                 </span>
                 {isAdmin && (
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200">
                     <Eye className="w-3.5 h-3.5" />
                     ADMIN (MONITOR ONLY)
                   </span>
                 )}
               </div>
 
-              <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight">
+              <h1 className="text-2xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
                 {contest.title}
               </h1>
-              <p className="text-slate-300 text-sm leading-relaxed">
+              <p className="text-slate-600 text-sm leading-relaxed">
                 {contest.description}
               </p>
             </div>
 
             {/* LIVE COUNTDOWN CLOCK */}
-            <div className="bg-slate-800/80 backdrop-blur-md rounded-2xl p-6 border border-slate-700/80 flex flex-col items-center justify-center shrink-0 min-w-[220px]">
-              <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">
-                <Clock className="w-4 h-4 text-emerald-400" />
+            <div className="bg-slate-50 rounded-2xl p-6 border border-slate-200 flex flex-col items-center justify-center shrink-0 min-w-[220px]">
+              <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">
+                <Clock className="w-4 h-4 text-[#0D684D]" />
                 <span>{isLive ? 'Time Remaining' : isUpcoming ? 'Contest Starts In' : 'Contest Ended'}</span>
               </div>
 
               {isLive ? (
-                <div className="flex items-center gap-2 font-mono text-3xl sm:text-4xl font-black text-emerald-400">
+                <div className="flex items-center gap-2 font-mono text-3xl sm:text-4xl font-black text-[#0D684D]">
                   <div className="flex flex-col items-center">
                     <span>{timeLeft.hours.toString().padStart(2, '0')}</span>
-                    <span className="text-[10px] font-sans font-medium text-slate-400 uppercase">Hours</span>
+                    <span className="text-[10px] font-sans font-medium text-slate-500 uppercase">Hours</span>
                   </div>
                   <span className="pb-4">:</span>
                   <div className="flex flex-col items-center">
                     <span>{timeLeft.minutes.toString().padStart(2, '0')}</span>
-                    <span className="text-[10px] font-sans font-medium text-slate-400 uppercase">Mins</span>
+                    <span className="text-[10px] font-sans font-medium text-slate-500 uppercase">Mins</span>
                   </div>
                   <span className="pb-4">:</span>
                   <div className="flex flex-col items-center">
                     <span>{timeLeft.seconds.toString().padStart(2, '0')}</span>
-                    <span className="text-[10px] font-sans font-medium text-slate-400 uppercase">Secs</span>
+                    <span className="text-[10px] font-sans font-medium text-slate-500 uppercase">Secs</span>
                   </div>
                 </div>
               ) : isUpcoming ? (
-                <div className="flex items-center gap-2 font-mono text-3xl sm:text-4xl font-black text-blue-400">
+                <div className="flex items-center gap-2 font-mono text-3xl sm:text-4xl font-black text-blue-600">
                   <div className="flex flex-col items-center">
                     <span>{startCountdown.hours.toString().padStart(2, '0')}</span>
-                    <span className="text-[10px] font-sans font-medium text-slate-400 uppercase">Hours</span>
+                    <span className="text-[10px] font-sans font-medium text-slate-500 uppercase">Hours</span>
                   </div>
                   <span className="pb-4">:</span>
                   <div className="flex flex-col items-center">
                     <span>{startCountdown.minutes.toString().padStart(2, '0')}</span>
-                    <span className="text-[10px] font-sans font-medium text-slate-400 uppercase">Mins</span>
+                    <span className="text-[10px] font-sans font-medium text-slate-500 uppercase">Mins</span>
                   </div>
                   <span className="pb-4">:</span>
                   <div className="flex flex-col items-center">
                     <span>{startCountdown.seconds.toString().padStart(2, '0')}</span>
-                    <span className="text-[10px] font-sans font-medium text-slate-400 uppercase">Secs</span>
+                    <span className="text-[10px] font-sans font-medium text-slate-500 uppercase">Secs</span>
                   </div>
                 </div>
               ) : (
-                <div className="font-mono text-xl font-bold text-slate-400 py-2">
+                <div className="font-mono text-xl font-bold text-slate-500 py-2">
                   00:00:00
                 </div>
               )}
