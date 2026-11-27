@@ -106,6 +106,27 @@ export const AdminProblemFormPage = () => {
     C: ''
   });
   const [solutionTab, setSolutionTab] = useState('JAVA');
+  const [manualSolutionEdit, setManualSolutionEdit] = useState({});
+
+  // AUTOMATED FETCH: Automatically sync generated function signatures from Section C to Section F without requiring a button
+  useEffect(() => {
+    if (functionConfig?.templates && Object.keys(functionConfig.templates).length > 0) {
+      setOfficialSolutions(prev => {
+        let changed = false;
+        const next = { ...prev };
+        Object.entries(functionConfig.templates).forEach(([lang, templateCode]) => {
+          // If the admin hasn't manually customized this specific solution yet, or if it's empty, auto-populate from Section C
+          if (!manualSolutionEdit[lang] || !next[lang] || next[lang].trim() === '') {
+            if (next[lang] !== templateCode) {
+              next[lang] = templateCode;
+              changed = true;
+            }
+          }
+        });
+        return changed ? next : prev;
+      });
+    }
+  }, [functionConfig.templates, manualSolutionEdit]);
 
   // Preview State
   const [previewLang, setPreviewLang] = useState('JAVA');
@@ -198,11 +219,18 @@ export const AdminProblemFormPage = () => {
           const parsedSol = JSON.parse(prob.solutionCode);
           if (parsedSol && typeof parsedSol === 'object') {
             setOfficialSolutions(prev => ({ ...prev, ...parsedSol }));
+            const edits = {};
+            Object.keys(parsedSol).forEach(k => {
+              if (parsedSol[k]?.trim()) edits[k] = true;
+            });
+            setManualSolutionEdit(edits);
           } else {
             setOfficialSolutions(prev => ({ ...prev, JAVA: prob.solutionCode }));
+            if (prob.solutionCode?.trim()) setManualSolutionEdit({ JAVA: true });
           }
         } catch {
           setOfficialSolutions(prev => ({ ...prev, JAVA: prob.solutionCode }));
+          if (prob.solutionCode?.trim()) setManualSolutionEdit({ JAVA: true });
         }
       }
 
@@ -301,33 +329,6 @@ export const AdminProblemFormPage = () => {
       updated[idx] = { ...updated[idx], [field]: val };
       return updated;
     });
-  };
-
-  // Fetch Section C generated starter code into Section F official solution
-  const handleFetchSignatureFromSectionC = (languageId = null) => {
-    const targetLang = languageId || solutionTab;
-    const srcCode = functionConfig?.templates?.[targetLang];
-    if (srcCode) {
-      setOfficialSolutions(prev => ({
-        ...prev,
-        [targetLang]: srcCode
-      }));
-      setStatusMessage(`Fetched ${targetLang} signature from Section C.`);
-    } else {
-      setStatusMessage(`No signature generated yet for ${targetLang} in Section C.`);
-    }
-  };
-
-  const handleFetchAllSignaturesFromSectionC = () => {
-    if (functionConfig?.templates && Object.keys(functionConfig.templates).length > 0) {
-      setOfficialSolutions(prev => ({
-        ...prev,
-        ...functionConfig.templates
-      }));
-      setStatusMessage('Fetched all 5 language signatures from Section C.');
-    } else {
-      setStatusMessage('No signatures generated yet in Section C.');
-    }
   };
 
   // Submit Handler
@@ -1092,26 +1093,11 @@ export const AdminProblemFormPage = () => {
                   </div>
                 </div>
 
-                {/* Fetch from Section C Quick Action Buttons */}
-                <div className="flex items-center gap-2 flex-wrap">
-                  <button
-                    type="button"
-                    onClick={() => handleFetchSignatureFromSectionC(solutionTab)}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-[#0D684D] border border-emerald-300 text-xs font-bold transition-all shadow-xs cursor-pointer"
-                    title={`Fetch auto-generated ${solutionTab} signature from Section C`}
-                  >
-                    <Sparkles className="w-3.5 h-3.5" />
-                    <span>Fetch {solutionTab} from Section C</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={handleFetchAllSignaturesFromSectionC}
-                    className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 text-xs font-bold transition-all shadow-xs cursor-pointer"
-                    title="Fetch all 5 language signatures from Section C"
-                  >
-                    <span>⚡ Fetch All 5</span>
-                  </button>
+                <div className="flex items-center gap-2">
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-[#0D684D] border border-emerald-200 shadow-2xs">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#0D684D]"></span>
+                    Auto-fetched from Section C
+                  </span>
                 </div>
               </div>
 
@@ -1135,46 +1121,22 @@ export const AdminProblemFormPage = () => {
                     ))}
                   </div>
 
-                  <div className="flex items-center gap-3">
-                    <button
-                      type="button"
-                      onClick={() => handleFetchSignatureFromSectionC(solutionTab)}
-                      className="text-xs font-bold text-[#0D684D] hover:underline flex items-center gap-1 cursor-pointer"
-                    >
-                      <Sparkles className="w-3.5 h-3.5" />
-                      <span>Fetch from Section C ({solutionTab})</span>
-                    </button>
-                    <span className="text-[11px] font-mono text-slate-500 font-semibold">Official Solution Code</span>
-                  </div>
+                  <span className="text-[11px] font-mono text-slate-500 font-semibold">Official Solution Code</span>
                 </div>
 
                 <div className="relative bg-white">
                   <textarea
                     rows={12}
                     value={officialSolutions[solutionTab] || ''}
-                    onChange={(e) => setOfficialSolutions(prev => ({ ...prev, [solutionTab]: e.target.value }))}
-                    placeholder={`// Enter official working ${solutionTab} solution here, or click "Fetch from Section C" above...`}
+                    onChange={(e) => {
+                      setManualSolutionEdit(prev => ({ ...prev, [solutionTab]: true }));
+                      setOfficialSolutions(prev => ({ ...prev, [solutionTab]: e.target.value }));
+                    }}
+                    placeholder={`// Write official ${solutionTab} solution here...`}
                     spellCheck="false"
                     style={{ color: '#0f172a', backgroundColor: '#ffffff', opacity: 1 }}
                     className="w-full p-4 font-mono text-xs sm:text-sm bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none leading-relaxed resize-y font-semibold selection:bg-emerald-100"
                   />
-
-                  {/* Empty state overlay suggestion */}
-                  {!officialSolutions[solutionTab] && (
-                    <div className="p-3 bg-slate-50 border-t border-slate-200 flex items-center justify-between text-xs text-slate-700">
-                      <span className="flex items-center gap-2">
-                        <Sparkles className="w-4 h-4 text-emerald-600 shrink-0" />
-                        <span>Ready to code: Pre-fill the <strong>{solutionTab}</strong> function skeleton generated in Section C.</span>
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => handleFetchSignatureFromSectionC(solutionTab)}
-                        className="px-3 py-1 rounded-lg bg-[#0D684D] hover:bg-[#0A543E] text-white font-bold text-xs shrink-0 shadow-xs transition-colors cursor-pointer"
-                      >
-                        ⚡ Fetch from Section C
-                      </button>
-                    </div>
-                  )}
                 </div>
               </div>
             </div>
