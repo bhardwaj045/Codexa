@@ -1,5 +1,5 @@
 /**
- * Automatic LeetCode-Style Function Signature & Starter Code Generator
+ * Automatic Function Signature & Starter Code Generator
  * Supports Java, C++, C, Python, JavaScript
  */
 

@@ -75,7 +75,7 @@ export const UserDashboardPage = () => {
     memoryUsedMb: s.memoryUsedKb ? (s.memoryUsedKb / 1024).toFixed(1) : (s.memoryUsedMb || null)
   }));
 
-  // LeetCode-style activity calendar generation grouped cleanly by month (past 12 months)
+  // Activity calendar generation grouped cleanly by month (past 12 months)
   const { calendarMonths, totalYearSubmissions, activeDaysCount } = useMemo(() => {
     const calendarMap = d.submissionCalendar || {};
     let yearSubCount = 0;
@@ -304,7 +304,7 @@ export const UserDashboardPage = () => {
           </div>
         </div>
 
-        {/* LEETCODE-STYLE CODING ACTIVITY CARD */}
+        {/* CODING ACTIVITY CARD */}
         <div className="bg-white rounded-2xl p-6 border border-slate-300 shadow-sm">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
             <div>
@@ -336,7 +336,7 @@ export const UserDashboardPage = () => {
             </div>
           </div>
 
-          {/* LeetCode Contribution Calendar Grid - Grouped and Separated by Month */}
+          {/* Contribution Calendar Grid - Grouped and Separated by Month */}
           <div className="overflow-x-auto py-2">
             <div className="min-w-fit select-none">
               <div className="flex gap-2 items-start">
@@ -525,7 +525,7 @@ export const UserDashboardPage = () => {
           </div>
         </div>
 
-        {/* LEETCODE-STYLE RECENT SUBMISSIONS TABLE CARD */}
+        {/* RECENT SUBMISSIONS TABLE CARD */}
         <div className="bg-white rounded-2xl p-6 border border-slate-300 shadow-sm">
           <div className="flex items-center justify-between mb-4">
             <div>
@@ -583,7 +583,7 @@ export const UserDashboardPage = () => {
                           )}
                         </td>
 
-                        {/* Status (LeetCode style: bold color + dot) */}
+                        {/* Status (bold color + dot) */}
                         <td className="py-3 px-4">
                           <div className="flex items-center gap-1.5">
                             <span className={`w-2 h-2 rounded-full ${isAccepted ? 'bg-[#2CBB5D]' : 'bg-[#EF4743]'}`} />

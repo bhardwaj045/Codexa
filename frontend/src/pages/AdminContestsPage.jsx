@@ -812,19 +812,19 @@ export const AdminContestsPage = () => {
                       }}
                       className="text-[11px] font-bold text-emerald-700 hover:text-emerald-900 flex items-center gap-1 hover:underline cursor-pointer"
                     >
-                      ⚡ Auto-Generate LeetCode 5-Language Signatures
+                      ⚡ Auto-Generate 5-Language Signatures
                     </button>
                   </div>
                   <textarea
                     rows={4}
                     value={probStarterCode}
                     onChange={(e) => setProbStarterCode(e.target.value)}
-                    placeholder="Enter starter code or click 'Auto-Generate LeetCode 5-Language Signatures'"
+                    placeholder="Enter starter code or click 'Auto-Generate 5-Language Signatures'"
                     style={{ color: '#10b981', backgroundColor: '#0f172a', opacity: 1 }}
                     className="w-full px-3 py-2 rounded-xl border border-slate-300 bg-slate-900 text-emerald-400 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-mono text-xs"
                   />
                   <p className="text-[10px] text-slate-500 mt-1">
-                    Tip: Generates automatic templates for Java, C++, C, Python, and JavaScript matching LeetCode specifications.
+                    Tip: Generates automatic templates for Java, C++, C, Python, and JavaScript standard specifications.
                   </p>
                 </div>
 

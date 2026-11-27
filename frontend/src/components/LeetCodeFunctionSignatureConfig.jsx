@@ -19,7 +19,7 @@ import {
   Edit3
 } from 'lucide-react';
 
-export const LeetCodeFunctionSignatureConfig = ({
+export const FunctionSignatureConfig = ({
   initialFunctionName = 'twoSum',
   initialReturnType = 'int[]',
   initialParameters = [
@@ -381,3 +381,5 @@ export const LeetCodeFunctionSignatureConfig = ({
     </div>
   );
 };
+
+export const LeetCodeFunctionSignatureConfig = FunctionSignatureConfig;

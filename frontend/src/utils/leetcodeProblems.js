@@ -1,10 +1,10 @@
 /**
- * Official LeetCode Problem Specifications and Metadata
- * Provides exact LeetCode descriptions, examples, constraints, hints, starter code, solutions, and editorials.
+ * Standard Problem Specifications and Metadata
+ * Provides standard descriptions, examples, constraints, hints, starter code, solutions, and editorials.
  */
 
 export const LEETCODE_PROBLEMS = {
-  // 1. Two Sum (LeetCode #1)
+  // 1. Two Sum
   'two sum': {
     leetcodeNumber: 1,
     title: 'Two Sum',

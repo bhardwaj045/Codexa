@@ -18,7 +18,7 @@ import {
   HelpCircle
 } from 'lucide-react';
 
-export const LeetCodeDescriptionEditor = ({
+export const ProblemDescriptionEditor = ({
   value = '',
   onChange,
   placeholder = 'Write problem description, background, and task requirements...',
@@ -313,7 +313,7 @@ export const LeetCodeDescriptionEditor = ({
 
           <span className="w-px h-4 bg-slate-300 mx-1"></span>
 
-          {/* LeetCode Fast Snippets */}
+          {/* Fast Snippets */}
           <button
             type="button"
             onClick={insertExampleTemplate}
@@ -379,3 +379,5 @@ export const LeetCodeDescriptionEditor = ({
     </div>
   );
 };
+
+export const LeetCodeDescriptionEditor = ProblemDescriptionEditor;

@@ -9,7 +9,7 @@ import { getLeetCodeMetadata } from '../utils/leetcodeProblems';
 import { Play, Send, RotateCcw, ArrowLeft, History, Copy, Check, X, FileCode, Clock, Terminal, CheckCircle2, ChevronDown, ChevronUp, ThumbsUp, ThumbsDown, MessageSquare, Star, Share2, Maximize2, Code2, BookOpen, FileText, Lightbulb, Tag, Lock, Sun, Moon, Users, Eye } from 'lucide-react';
 import { ContestProctoring } from '../components/ContestProctoring';
 
-// LeetCode-style colorful syntax highlighter (single-pass tokenizer)
+// CodeXa colorful syntax highlighter (single-pass tokenizer)
 const highlightCode = (code, lang, isDark) => {
   if (!code) return '';
 
@@ -367,7 +367,7 @@ export const ProblemDetailPage = () => {
     const diff = (meta?.difficulty || problem.difficulty || 'EASY').toUpperCase();
     if (diff === 'HARD') return 'text-rose-400 bg-rose-500/10 border-rose-500/20';
     if (diff === 'MEDIUM') return 'text-amber-400 bg-amber-500/10 border-amber-500/20';
-    return 'text-teal-400 bg-teal-500/10 border-teal-500/20'; // Easy (LeetCode teal)
+    return 'text-teal-400 bg-teal-500/10 border-teal-500/20'; // Easy teal badge
   };
 
   // Color classes for Dark / Light theme
@@ -469,7 +469,7 @@ export const ProblemDetailPage = () => {
     }
   }
 
-  // LeetCode formatted examples (supports parsed JSON array from Admin form or metadata fallback)
+  // Formatted examples (supports parsed JSON array from Admin form or metadata fallback)
   let parsedExamples = null;
   if (problem?.sampleInput && typeof problem.sampleInput === 'string' && problem.sampleInput.trim().startsWith('[')) {
     try {
@@ -487,14 +487,14 @@ export const ProblemDetailPage = () => {
         }
       ]);
 
-  // LeetCode formatted constraints
+  // Formatted constraints
   const constraintsList = meta?.constraints || (
     problem?.problemConstraints 
       ? problem.problemConstraints.split('\n').filter(Boolean)
       : ['1 <= n <= 10^5']
   );
 
-  // Dynamic hints (Admin entered or fallback to LeetCode defaults)
+  // Dynamic hints (Admin entered or fallback to standard defaults)
   let problemHints = meta?.hints || ['Break down the problem using two pointers or hash maps to optimize time complexity.'];
   if (problem?.hints) {
     try {
@@ -511,7 +511,7 @@ export const ProblemDetailPage = () => {
     }
   }
 
-  // Dynamic companies (Admin entered or fallback to LeetCode defaults)
+  // Dynamic companies (Admin entered or fallback to standard defaults)
   let problemCompanies = meta?.companies || ['Amazon', 'Google', 'Apple', 'Microsoft', 'Meta'];
   if (problem?.companies && problem.companies.trim()) {
     const list = problem.companies.split(',').map((c) => c.trim()).filter(Boolean);
@@ -534,7 +534,7 @@ export const ProblemDetailPage = () => {
 
   return (
     <div className={`h-screen flex flex-col font-sans antialiased overflow-hidden ${bgMain} selection:bg-[#2CBB5D]/30`}>
-      {/* TOP LEETCODE BAR */}
+      {/* TOP WORKSPACE BAR */}
       <header className={`h-12 ${bgPane} border-b ${borderCol} px-4 flex items-center justify-between shrink-0 z-20`}>
         <div className="flex items-center gap-3">
           <Link
@@ -560,7 +560,7 @@ export const ProblemDetailPage = () => {
 
         {/* Global Controls */}
         <div className="flex items-center gap-2.5">
-          {/* Theme Toggle (Dark LeetCode / Light LeetCode) */}
+          {/* Theme Toggle (Dark / Light) */}
           <button
             onClick={() => setTheme(isDark ? 'light' : 'dark')}
             className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg border ${borderCol} text-xs font-semibold ${textMuted} hover:${textHead} transition-colors`}
@@ -583,7 +583,7 @@ export const ProblemDetailPage = () => {
       <div className={`flex-1 flex overflow-hidden p-2 gap-2 ${isAdmin ? 'justify-center max-w-5xl mx-auto w-full' : 'flex-col lg:flex-row'}`}>
         {/* PROBLEM STATEMENT PANE */}
         <div className={`flex flex-col rounded-xl overflow-hidden border ${borderCol} ${bgPane} shadow-sm ${isAdmin ? 'w-full' : 'w-full lg:w-1/2'}`}>
-          {/* LeetCode Top Tabs Bar - Hidden for Admin as Admin does not submit/solve */}
+          {/* Top Tabs Bar - Hidden for Admin as Admin does not submit/solve */}
           {!isAdmin && (
             <div className={`h-10 border-b ${borderCol} px-3 flex items-center justify-between shrink-0 ${bgSubPane}`}>
               <div className="flex items-center gap-1">
@@ -679,7 +679,7 @@ export const ProblemDetailPage = () => {
                   </p>
                 </div>
 
-                {/* Dynamic LeetCode Examples */}
+                {/* Dynamic Examples */}
                 <div className="space-y-4">
                   {examplesList.map((ex) => (
                     <div key={ex.id} className="space-y-2">
@@ -745,7 +745,7 @@ export const ProblemDetailPage = () => {
                   </div>
                 </div>
 
-                {/* LeetCode Dropdown Accordions */}
+                {/* Dropdown Accordions */}
                 <div className={`space-y-1.5 pt-2 border-t ${borderCol}`}>
                   {/* Topics Accordion */}
                   <div className={`border ${borderCol} rounded-xl overflow-hidden`}>
@@ -1021,7 +1021,7 @@ export const ProblemDetailPage = () => {
           </div>
         </div>
 
-        {/* RIGHT PANE (CODE EDITOR & TESTCASE DRAWER IN LEETCODE SLEEK UI) - ONLY FOR CONTESTANTS / STUDENTS */}
+        {/* RIGHT PANE (CODE EDITOR & TESTCASE DRAWER) - ONLY FOR CONTESTANTS / STUDENTS */}
         {!isAdmin && (
           <div className={`w-full lg:w-1/2 flex flex-col rounded-xl overflow-hidden border ${borderCol} ${bgPane} shadow-sm`}>
           {/* Top Bar: </> Code */}
@@ -1031,7 +1031,7 @@ export const ProblemDetailPage = () => {
               <span className={`text-xs font-bold tracking-tight ${textHead}`}>Code</span>
             </div>
 
-            {/* Language Selector & LeetCode Controls */}
+            {/* Language Selector & Controls */}
             <div className="flex items-center gap-2">
               <div className="flex items-center gap-1">
                 <select
@@ -1124,7 +1124,7 @@ export const ProblemDetailPage = () => {
             <span>Ln {cursorPos.ln}, Col {cursorPos.col}</span>
           </div>
 
-          {/* LeetCode Bottom Drawer: [Testcase] [>_ Test Result] */}
+          {/* Bottom Drawer: [Testcase] [>_ Test Result] */}
           <div className={`flex-1 border-t ${borderCol} flex flex-col overflow-hidden min-h-0 ${bgPane}`}>
             {/* Drawer Header Tabs & Action Buttons */}
             <div className={`h-10 border-b ${borderCol} px-3 flex items-center justify-between ${bgSubPane} shrink-0`}>

@@ -3,8 +3,8 @@ import { useNavigate, useParams, Link } from 'react-router-dom';
 import { problemApi } from '../api/problemApi';
 import { testCaseApi } from '../api/testCaseApi';
 import { AppLayout } from '../components/AppLayout';
-import { LeetCodeDescriptionEditor } from '../components/LeetCodeDescriptionEditor';
-import { LeetCodeFunctionSignatureConfig } from '../components/LeetCodeFunctionSignatureConfig';
+import { ProblemDescriptionEditor } from '../components/LeetCodeDescriptionEditor';
+import { FunctionSignatureConfig } from '../components/LeetCodeFunctionSignatureConfig';
 import { generateSlug, SUPPORTED_LANGUAGES } from '../utils/codeSignatureGenerator';
 import { 
   Plus, 
@@ -436,14 +436,14 @@ export const AdminProblemFormPage = () => {
           <div>
             <div className="flex items-center gap-2">
               <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-[#0D684D] border border-emerald-200">
-                LeetCode Engine
+                CodeXa Engine
               </span>
               <span className="text-xs text-slate-400 font-mono">
                 {slug ? `slug: /problems/${slug}` : 'Automated Generation'}
               </span>
             </div>
             <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight mt-1">
-              {isEditMode ? 'Edit LeetCode Problem' : 'Create LeetCode-Style Problem'}
+              {isEditMode ? 'Edit Problem' : 'Create Problem'}
             </h1>
             <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
               Automated multi-language function signature generation, rich description formatting, dynamic test cases, and editorial.
@@ -669,7 +669,7 @@ export const AdminProblemFormPage = () => {
             </div>
 
             {/* ============================================================== */}
-            {/* SECTION B: LEETCODE-STYLE PROBLEM DESCRIPTION & EXAMPLES       */}
+            {/* SECTION B: PROBLEM DESCRIPTION & EXAMPLES                      */}
             {/* ============================================================== */}
             <div id="section-B" className="bg-white rounded-3xl border border-slate-300 shadow-xs p-6 sm:p-8 space-y-6">
               <div className="flex items-center justify-between border-b border-slate-100 pb-3">
@@ -689,7 +689,7 @@ export const AdminProblemFormPage = () => {
                 <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
                   Problem Statement (Rich Text Editor) *
                 </label>
-                <LeetCodeDescriptionEditor
+                <ProblemDescriptionEditor
                   value={description}
                   onChange={setDescription}
                   placeholder={`Given an array of integers nums and an integer target, return indices of the two numbers such that they add up to target.\n\nYou may assume that each input would have exactly one solution, and you may not use the same element twice.\n\nYou can return the answer in any order.`}
@@ -840,7 +840,7 @@ export const AdminProblemFormPage = () => {
                 </div>
               </div>
 
-              <LeetCodeFunctionSignatureConfig
+              <FunctionSignatureConfig
                 initialFunctionName={functionConfig.functionName}
                 initialReturnType={functionConfig.returnType}
                 initialParameters={functionConfig.parameters}
@@ -1202,7 +1202,7 @@ export const AdminProblemFormPage = () => {
                   ) : (
                     <>
                       <CheckCircle className="w-4 h-4" />
-                      <span>{isEditMode ? 'Update LeetCode Problem' : 'Create & Publish Problem'}</span>
+                      <span>{isEditMode ? 'Update Problem' : 'Create & Publish Problem'}</span>
                     </>
                   )}
                 </button>
