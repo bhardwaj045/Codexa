@@ -140,7 +140,7 @@ export const ContestsListPage = () => {
     <AppLayout title="Coding Contests">
       <div className="max-w-6xl mx-auto space-y-8 pb-12">
         {/* HERO BANNER */}
-        <div className="relative overflow-hidden rounded-3xl bg-white text-slate-900 p-8 sm:p-10 shadow-sm border border-slate-200">
+        <div className="relative overflow-hidden rounded-3xl bg-white/80 backdrop-blur-md text-slate-900 p-8 sm:p-10 shadow-sm border border-slate-400">
           <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div className="space-y-3 max-w-2xl">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-[#0D684D] text-xs font-semibold">

@@ -252,7 +252,7 @@ export const ContestArenaPage = () => {
         )}
 
         {/* CONTEST HEADER ARENA BANNER */}
-        <div className="relative overflow-hidden rounded-3xl bg-white text-slate-900 p-8 sm:p-10 shadow-sm border border-slate-200">
+        <div className="relative overflow-hidden rounded-3xl bg-white/80 backdrop-blur-md text-slate-900 p-8 sm:p-10 shadow-sm border border-slate-400">
           <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-8">
             <div className="space-y-3 max-w-2xl">
               <div className="flex flex-wrap items-center gap-3">
@@ -295,7 +295,7 @@ export const ContestArenaPage = () => {
             </div>
 
             {/* LIVE COUNTDOWN CLOCK */}
-            <div className="bg-slate-50 rounded-2xl p-6 border border-slate-200 flex flex-col items-center justify-center shrink-0 min-w-[220px]">
+            <div className="bg-slate-50/80 rounded-2xl p-6 border border-slate-300 flex flex-col items-center justify-center shrink-0 min-w-[220px]">
               <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">
                 <Clock className="w-4 h-4 text-[#0D684D]" />
                 <span>{isLive ? 'Time Remaining' : isUpcoming ? 'Contest Starts In' : 'Contest Ended'}</span>
