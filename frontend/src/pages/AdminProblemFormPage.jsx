@@ -1117,8 +1117,8 @@ export const AdminProblemFormPage = () => {
                     }}
                     placeholder={`// Write official ${solutionTab} solution here...`}
                     spellCheck="false"
-                    style={{ color: '#0f172a', backgroundColor: '#ffffff', opacity: 1 }}
-                    className="w-full p-4 font-mono text-xs sm:text-sm bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none leading-relaxed resize-y font-semibold selection:bg-emerald-100"
+                    style={{ color: '#0f172a', backgroundColor: '#ffffff', opacity: 1, caretColor: '#0f172a' }}
+                    className="w-full p-4 font-mono text-xs sm:text-sm bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none leading-relaxed resize-y font-semibold selection:bg-[#0D684D] selection:text-white"
                   />
                 </div>
               </div>

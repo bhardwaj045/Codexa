@@ -217,126 +217,19 @@ export const ProblemDescriptionEditor = ({
 
   return (
     <div className="rounded-2xl border-2 border-slate-400 overflow-hidden bg-white shadow-xs">
-      {/* TOOLBAR HEADER */}
-      <div className="px-3 py-2 bg-slate-100 border-b border-slate-300 flex flex-wrap items-center justify-between gap-2">
-        {/* Formatting Actions */}
-        <div className="flex items-center flex-wrap gap-1">
-          <button
-            type="button"
-            onClick={() => insertText('## ', '\n', 'Heading')}
-            className="p-1.5 rounded-lg text-slate-700 hover:bg-white hover:text-slate-900 border border-transparent hover:border-slate-300 transition-all"
-            title="Heading 2"
-          >
-            <Heading2 className="w-4 h-4" />
-          </button>
-          <button
-            type="button"
-            onClick={() => insertText('### ', '\n', 'Subheading')}
-            className="p-1.5 rounded-lg text-slate-700 hover:bg-white hover:text-slate-900 border border-transparent hover:border-slate-300 transition-all"
-            title="Heading 3"
-          >
-            <Heading3 className="w-4 h-4" />
-          </button>
-
-          <span className="w-px h-4 bg-slate-300 mx-1"></span>
-
-          <button
-            type="button"
-            onClick={() => insertText('**', '**', 'bold text')}
-            className="p-1.5 rounded-lg text-slate-700 hover:bg-white hover:text-slate-900 border border-transparent hover:border-slate-300 transition-all"
-            title="Bold (**text**)"
-          >
-            <Bold className="w-4 h-4" />
-          </button>
-          <button
-            type="button"
-            onClick={() => insertText('*', '*', 'italic text')}
-            className="p-1.5 rounded-lg text-slate-700 hover:bg-white hover:text-slate-900 border border-transparent hover:border-slate-300 transition-all"
-            title="Italic (*text*)"
-          >
-            <Italic className="w-4 h-4" />
-          </button>
-
-          <span className="w-px h-4 bg-slate-300 mx-1"></span>
-
-          <button
-            type="button"
-            onClick={() => insertText('`', '`', 'code')}
-            className="p-1.5 rounded-lg text-slate-700 hover:bg-white hover:text-slate-900 border border-transparent hover:border-slate-300 transition-all font-mono text-xs"
-            title="Inline Code (`code`)"
-          >
-            <Code className="w-4 h-4" />
-          </button>
-          <button
-            type="button"
-            onClick={() => insertText('```cpp\n', '\n```\n', '// Write code here')}
-            className="p-1.5 rounded-lg text-slate-700 hover:bg-white hover:text-slate-900 border border-transparent hover:border-slate-300 transition-all font-mono text-xs"
-            title="Code Block (```)"
-          >
-            <FileCode className="w-4 h-4" />
-          </button>
-          <button
-            type="button"
-            onClick={() => insertText('$', '$', 'x^2 + y^2 = r^2')}
-            className="p-1.5 rounded-lg text-slate-700 hover:bg-white hover:text-slate-900 border border-transparent hover:border-slate-300 transition-all"
-            title="Mathematical Expression ($x$)"
-          >
-            <Sigma className="w-4 h-4" />
-          </button>
-
-          <span className="w-px h-4 bg-slate-300 mx-1"></span>
-
-          <button
-            type="button"
-            onClick={() => insertText('- ', '\n', 'List item')}
-            className="p-1.5 rounded-lg text-slate-700 hover:bg-white hover:text-slate-900 border border-transparent hover:border-slate-300 transition-all"
-            title="Bullet List (- item)"
-          >
-            <List className="w-4 h-4" />
-          </button>
-          <button
-            type="button"
-            onClick={() => insertText('1. ', '\n', 'Numbered item')}
-            className="p-1.5 rounded-lg text-slate-700 hover:bg-white hover:text-slate-900 border border-transparent hover:border-slate-300 transition-all"
-            title="Numbered List (1. item)"
-          >
-            <ListOrdered className="w-4 h-4" />
-          </button>
-          <button
-            type="button"
-            onClick={insertTableTemplate}
-            className="p-1.5 rounded-lg text-slate-700 hover:bg-white hover:text-slate-900 border border-transparent hover:border-slate-300 transition-all"
-            title="Insert Table"
-          >
-            <Table className="w-4 h-4" />
-          </button>
-
-          <span className="w-px h-4 bg-slate-300 mx-1"></span>
-
-          {/* Fast Snippets */}
-          <button
-            type="button"
-            onClick={insertExampleTemplate}
-            className="px-2 py-1 rounded-md text-[11px] font-bold bg-white text-[#0D684D] border border-emerald-300 hover:bg-emerald-50 transition-all flex items-center gap-1"
-          >
-            <Sparkles className="w-3 h-3 text-emerald-600" />
-            <span>+ Example</span>
-          </button>
-          <button
-            type="button"
-            onClick={insertConstraintsTemplate}
-            className="px-2 py-1 rounded-md text-[11px] font-bold bg-white text-slate-700 border border-slate-300 hover:bg-slate-50 transition-all"
-          >
-            + Constraints
-          </button>
+      {/* TOOLBAR HEADER - Clean header with Write/Preview without formatting snippet bar */}
+      <div className="px-4 py-2.5 bg-slate-100 border-b border-slate-300 flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2">
+          <Edit3 className="w-4 h-4 text-[#0D684D]" />
+          <span className="text-xs font-bold uppercase tracking-wider text-slate-700">Problem Statement Editor</span>
         </div>
 
         {/* View Switcher: Editor / Live Preview */}
-        <div className="flex items-center gap-1 bg-white p-0.5 rounded-lg border border-slate-200 text-xs font-semibold">
+        <div className="flex items-center gap-1 bg-white p-0.5 rounded-lg border border-slate-300 text-xs font-semibold">
           <button
             type="button"
             onClick={() => setTab('editor')}
-            className={`flex items-center gap-1 px-2.5 py-1 rounded-md transition-all ${
+            className={`flex items-center gap-1 px-3 py-1 rounded-md transition-all ${
               tab === 'editor'
                 ? 'bg-slate-900 text-white font-bold shadow-xs'
                 : 'text-slate-600 hover:text-slate-900'
@@ -348,7 +241,7 @@ export const ProblemDescriptionEditor = ({
           <button
             type="button"
             onClick={() => setTab('preview')}
-            className={`flex items-center gap-1 px-2.5 py-1 rounded-md transition-all ${
+            className={`flex items-center gap-1 px-3 py-1 rounded-md transition-all ${
               tab === 'preview'
                 ? 'bg-slate-900 text-white font-bold shadow-xs'
                 : 'text-slate-600 hover:text-slate-900'
@@ -368,8 +261,8 @@ export const ProblemDescriptionEditor = ({
           value={value}
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
-          style={{ color: '#0f172a', backgroundColor: '#ffffff', opacity: 1 }}
-          className="w-full p-4 text-sm font-medium text-slate-900 bg-white placeholder:text-slate-400 focus:outline-none leading-relaxed resize-y font-sans selection:bg-emerald-100"
+          style={{ color: '#0f172a', backgroundColor: '#ffffff', opacity: 1, caretColor: '#0f172a' }}
+          className="w-full p-4 text-sm font-semibold text-slate-900 bg-white placeholder:text-slate-400 focus:outline-none leading-relaxed resize-y font-sans selection:bg-[#0D684D] selection:text-white"
         />
       ) : (
         <div className="p-5 min-h-[220px] bg-slate-50/50 space-y-2 overflow-y-auto max-h-[500px]">

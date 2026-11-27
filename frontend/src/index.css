@@ -14,6 +14,17 @@
   }
 }
 
+/* High-contrast text selection for maximum readability */
+::selection {
+  background-color: #0D684D !important;
+  color: #ffffff !important;
+}
+
+textarea::selection, input::selection {
+  background-color: #0D684D !important;
+  color: #ffffff !important;
+}
+
 /* Custom Scrollbars */
 ::-webkit-scrollbar {
   width: 8px;
