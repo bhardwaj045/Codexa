@@ -325,15 +325,23 @@ export const ContestsListPage = () => {
                           </button>
                         ) : (
                           <>
-                            {!isAdmin && !contest.isRegistered && !isFinished ? (
-                              <button
-                                onClick={(e) => handleJoin(contest.id, e)}
-                                disabled={registeringId === contest.id}
-                                className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs sm:text-sm shadow-sm transition-all hover:scale-105"
-                              >
-                                {registeringId === contest.id ? 'Registering...' : 'Register Now'}
-                              </button>
-                            ) : null}
+                            {/* Registration logic: Allowed ONLY before contest start time */}
+                            {!isAdmin && !contest.isRegistered && (
+                              isUpcoming ? (
+                                <button
+                                  onClick={(e) => handleJoin(contest.id, e)}
+                                  disabled={registeringId === contest.id}
+                                  className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs sm:text-sm shadow-sm transition-all hover:scale-105"
+                                >
+                                  {registeringId === contest.id ? 'Registering...' : 'Register Now'}
+                                </button>
+                              ) : (
+                                <span className="w-full sm:w-auto px-3.5 py-2 rounded-xl bg-slate-100 text-slate-500 font-semibold text-xs border border-slate-200 text-center inline-flex items-center justify-center gap-1">
+                                  <Lock className="w-3 h-3 text-slate-400" />
+                                  <span>Registration Closed</span>
+                                </span>
+                              )
+                            )}
 
                             <Link
                               to={isAdmin ? `/admin/contests/${contest.id}/monitor` : `/contests/${contest.id}`}
@@ -345,7 +353,15 @@ export const ContestsListPage = () => {
                                   : 'bg-slate-100 hover:bg-slate-200 text-slate-800'
                               }`}
                             >
-                              <span>{isAdmin ? 'Open Live Monitor' : isLive ? 'Enter Arena (Live)' : isUpcoming ? 'Waiting Room' : 'View Results'}</span>
+                              <span>
+                                {isAdmin 
+                                  ? 'Open Live Monitor' 
+                                  : isLive 
+                                  ? (contest.isRegistered ? 'Enter Arena (Live)' : 'View Standings') 
+                                  : isUpcoming 
+                                  ? 'Waiting Room' 
+                                  : 'View Results'}
+                              </span>
                               <ArrowRight className="w-4 h-4" />
                             </Link>
                           </>

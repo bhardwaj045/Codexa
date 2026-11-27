@@ -214,6 +214,16 @@ public class ContestService {
             return mapToSummary(contest, user);
         }
 
+        // Contestants can only register BEFORE the contest start time
+        LocalDateTime now = LocalDateTime.now();
+        boolean hasStarted = now.isAfter(contest.getStartTime()) || contest.getStatus() == ContestStatus.LIVE || contest.getStatus() == ContestStatus.COMPLETED;
+        if (hasStarted) {
+            if (contestParticipantRepository.existsByContestIdAndUserId(contestId, user.getId())) {
+                return mapToSummary(contest, user);
+            }
+            throw new RuntimeException("Registration is closed. Users can only register for a contest before it starts.");
+        }
+
         if (!contestParticipantRepository.existsByContestIdAndUserId(contestId, user.getId())) {
             ContestParticipant cp = ContestParticipant.builder()
                     .contest(contest)
@@ -226,6 +236,11 @@ public class ContestService {
         }
 
         return mapToSummary(contest, user);
+    }
+
+    public boolean isUserRegisteredForContest(Long contestId, Long userId) {
+        if (contestId == null || userId == null) return false;
+        return contestParticipantRepository.existsByContestIdAndUserId(contestId, userId);
     }
 
     @Transactional

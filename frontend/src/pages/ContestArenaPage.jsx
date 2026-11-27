@@ -101,21 +101,27 @@ export const ContestArenaPage = () => {
       setContest(contestRes.data);
       setLeaderboard(lbRes.data || []);
       setSubmissions(subRes.data || []);
-
-      // If student is logged in and not registered, auto-join for smooth experience
-      if (user && !isAdmin && !contestRes.data.isRegistered && contestRes.data.status === 'LIVE') {
-        try {
-          await contestApi.joinContest(id);
-          const updated = await contestApi.getContestDetail(id);
-          setContest(updated.data);
-        } catch (e) {
-          console.error(e);
-        }
-      }
     } catch (err) {
       console.error('Failed to load contest', err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleRegisterInArena = async () => {
+    if (!user) {
+      navigate(`/login?redirect=/contests/${id}`);
+      return;
+    }
+    try {
+      setRefreshing(true);
+      await contestApi.joinContest(id);
+      await loadContestData();
+    } catch (err) {
+      console.error(err);
+      alert(err.response?.data?.message || 'Failed to register for contest.');
+    } finally {
+      setRefreshing(false);
     }
   };
 
@@ -222,6 +228,26 @@ export const ContestArenaPage = () => {
               <Radio className="w-3.5 h-3.5 text-emerald-300 animate-pulse" />
               <span>Open Live Monitor</span>
             </Link>
+          </div>
+        )}
+
+        {/* UNREGISTERED SPECTATOR NOTICE BANNER */}
+        {!isAdmin && isLive && !contest.isRegistered && (
+          <div className="bg-amber-50 border border-amber-300 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-amber-500 text-white flex items-center justify-center shrink-0">
+                <Lock className="w-5 h-5" />
+              </div>
+              <div>
+                <h4 className="font-bold text-amber-950 text-sm">Contest Registration Closed (Spectator Mode)</h4>
+                <p className="text-xs text-amber-800">
+                  Contest registration closed when the contest started. Only participants who registered before the start time can submit solutions. You can spectate rankings and view the live leaderboard.
+                </p>
+              </div>
+            </div>
+            <span className="px-3 py-1.5 rounded-lg bg-amber-200 text-amber-900 font-bold text-xs shrink-0 self-start sm:self-center">
+              Spectator Mode
+            </span>
           </div>
         )}
 
@@ -371,7 +397,7 @@ export const ContestArenaPage = () => {
 
             {/* UPCOMING LOCK NOTICE FOR CONTESTANTS */}
             {isUpcoming && !isAdmin ? (
-              <div className="p-12 text-center space-y-4">
+              <div className="p-12 text-center space-y-5">
                 <div className="w-16 h-16 rounded-3xl bg-blue-50 text-blue-600 flex items-center justify-center mx-auto border border-blue-200 shadow-sm">
                   <Lock className="w-8 h-8" />
                 </div>
@@ -381,11 +407,30 @@ export const ContestArenaPage = () => {
                     This contest has not started yet. All 5 algorithmic challenges, test cases, and the code editor will unlock automatically when the contest begins.
                   </p>
                 </div>
-                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-50 text-blue-700 font-mono font-bold text-sm border border-blue-200">
-                  <Clock className="w-4 h-4 text-blue-500" />
-                  <span>
-                    Starts in {startCountdown.hours.toString().padStart(2, '0')}h {startCountdown.minutes.toString().padStart(2, '0')}m {startCountdown.seconds.toString().padStart(2, '0')}s
-                  </span>
+                
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
+                  <div className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-50 text-blue-700 font-mono font-bold text-sm border border-blue-200">
+                    <Clock className="w-4 h-4 text-blue-500" />
+                    <span>
+                      Starts in {startCountdown.hours.toString().padStart(2, '0')}h {startCountdown.minutes.toString().padStart(2, '0')}m {startCountdown.seconds.toString().padStart(2, '0')}s
+                    </span>
+                  </div>
+
+                  {!contest.isRegistered ? (
+                    <button
+                      onClick={handleRegisterInArena}
+                      disabled={refreshing}
+                      className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm shadow-md transition-all hover:scale-105 cursor-pointer"
+                    >
+                      <CheckCircle className="w-4 h-4" />
+                      <span>{refreshing ? 'Registering...' : 'Register Now (Before Contest Starts)'}</span>
+                    </button>
+                  ) : (
+                    <div className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-emerald-50 text-emerald-800 font-semibold text-xs border border-emerald-200">
+                      <CheckCircle className="w-4 h-4 text-emerald-600" />
+                      <span>You are registered! Get ready for start.</span>
+                    </div>
+                  )}
                 </div>
               </div>
             ) : (
@@ -477,8 +522,18 @@ export const ContestArenaPage = () => {
                             <span>View Problem</span>
                             <ExternalLink className="w-3.5 h-3.5" />
                           </Link>
+                        ) : !contest.isRegistered ? (
+                          // UNREGISTERED CONTESTANTS CANNOT SOLVE LIVE CHALLENGES
+                          <button
+                            disabled
+                            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl font-semibold text-xs text-slate-400 bg-slate-100 border border-slate-200 cursor-not-allowed"
+                            title="You did not register before this contest started"
+                          >
+                            <Lock className="w-3.5 h-3.5" />
+                            <span>Registration Closed</span>
+                          </button>
                         ) : (
-                          // ONLY LIVE CONTESTANTS CAN SOLVE
+                          // ONLY REGISTERED LIVE CONTESTANTS CAN SOLVE
                           <Link
                             to={`/problems/${cp.problemId}?contestId=${contest.id}`}
                             className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-xs sm:text-sm transition-all shadow-sm ${
@@ -766,8 +821,8 @@ export const ContestArenaPage = () => {
           document.body
         )}
 
-        {/* LIVE WEBCAM PROCTORING WIDGET FOR CONTESTANTS DURING LIVE CONTEST */}
-        {!isAdmin && isLive && (
+        {/* LIVE WEBCAM PROCTORING WIDGET FOR CONTESTANTS DURING LIVE CONTEST (REGISTERED ONLY) */}
+        {!isAdmin && isLive && contest.isRegistered && (
           <ContestProctoring 
             contestId={contest.id}
             contestTitle={contest.title}

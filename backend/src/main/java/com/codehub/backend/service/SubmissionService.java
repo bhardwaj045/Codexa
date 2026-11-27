@@ -142,6 +142,12 @@ public class SubmissionService {
         Problem problem = problemRepository.findById(req.getProblemId())
                 .orElseThrow(() -> new RuntimeException("Problem not found with ID: " + req.getProblemId()));
 
+        if (req.getContestId() != null && user != null && user.getUserRole() != UserRole.ADMIN) {
+            if (!contestService.isUserRegisteredForContest(req.getContestId(), user.getId())) {
+                throw new RuntimeException("You are not registered for this contest. Only participants who registered before the contest started can submit solutions.");
+            }
+        }
+
         Submission submission = Submission.builder()
                 .user(user)
                 .problem(problem)
