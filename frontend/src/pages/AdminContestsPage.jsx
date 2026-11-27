@@ -257,16 +257,6 @@ export const AdminContestsPage = () => {
             </span>
             <button
               onClick={() => {
-                resetNewProblemForm();
-                setShowProblemModal(true);
-              }}
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white border border-slate-300 hover:border-slate-400 hover:bg-slate-50 text-slate-800 font-semibold text-sm shadow-xs transition-all shrink-0"
-            >
-              <Plus className="w-4 h-4 text-[#0D684D]" />
-              <span>Add New Problem</span>
-            </button>
-            <button
-              onClick={() => {
                 if (allProblems.length >= 5 && selectedProblemIds.length === 0) {
                   setSelectedProblemIds(allProblems.slice(0, 5).map(p => p.id));
                 }
