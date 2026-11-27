@@ -16,7 +16,8 @@ import {
   Plus, 
   Sparkles,
   AlertCircle,
-  Ban
+  Ban,
+  Lock
 } from 'lucide-react';
 import { proctoringService } from '../utils/proctoringService';
 
