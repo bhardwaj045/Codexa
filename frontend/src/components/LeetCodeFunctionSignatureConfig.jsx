@@ -20,18 +20,17 @@ import {
 } from 'lucide-react';
 
 export const FunctionSignatureConfig = ({
-  initialFunctionName = 'twoSum',
-  initialReturnType = 'int[]',
-  initialParameters = [
-    { name: 'nums', type: 'int[]' },
-    { name: 'target', type: 'int' }
-  ],
+  config,
+  initialFunctionName = '',
+  initialReturnType = 'int',
+  initialParameters = [],
   initialTemplates = null,
+  problemTitle = '',
   onChange
 }) => {
-  const [functionName, setFunctionName] = useState(initialFunctionName);
-  const [returnType, setReturnType] = useState(initialReturnType);
-  const [parameters, setParameters] = useState(initialParameters);
+  const [functionName, setFunctionName] = useState(() => config?.functionName ?? initialFunctionName ?? '');
+  const [returnType, setReturnType] = useState(() => config?.returnType ?? initialReturnType ?? 'int');
+  const [parameters, setParameters] = useState(() => config?.parameters ?? initialParameters ?? []);
   const [selectedLanguage, setSelectedLanguage] = useState('JAVA');
   const [templates, setTemplates] = useState({});
   const [isManualEdit, setIsManualEdit] = useState({
@@ -43,19 +42,58 @@ export const FunctionSignatureConfig = ({
   });
   const [copied, setCopied] = useState(false);
 
-  // Initialize templates from props or generate
+  // Sync internal state if config prop updates from parent (e.g., resetNewProblemForm or loading problem)
+  useEffect(() => {
+    if (config) {
+      if (config.functionName !== undefined && config.functionName !== functionName) {
+        setFunctionName(config.functionName || '');
+      }
+      if (config.returnType !== undefined && config.returnType !== returnType) {
+        setReturnType(config.returnType || 'int');
+      }
+      if (config.parameters !== undefined) {
+        setParameters(config.parameters || []);
+      }
+      if (config.templates) {
+        setTemplates(config.templates);
+      }
+    }
+  }, [config]);
+
+  // Initialize templates from props or compute
   useEffect(() => {
     if (initialTemplates && Object.keys(initialTemplates).length > 0) {
       setTemplates(initialTemplates);
-    } else {
+    } else if (functionName.trim()) {
       recomputeTemplates(functionName, returnType, parameters);
     }
   }, []);
 
   // Whenever function configuration changes, recompute templates (for languages not locked in manual edit)
   const recomputeTemplates = (fn, ret, params) => {
+    if (!fn || !fn.trim()) {
+      const emptyTemplates = {
+        JAVA: '',
+        CPP: '',
+        C: '',
+        PYTHON: '',
+        JAVASCRIPT: ''
+      };
+      setTemplates(emptyTemplates);
+      if (onChange) {
+        onChange({
+          functionName: '',
+          returnType: ret,
+          parameters: params,
+          templates: emptyTemplates,
+          primaryStarterCode: ''
+        });
+      }
+      return;
+    }
+
     const generated = generateAllTemplates({
-      functionName: fn,
+      functionName: fn.trim(),
       returnType: ret,
       parameters: params
     });

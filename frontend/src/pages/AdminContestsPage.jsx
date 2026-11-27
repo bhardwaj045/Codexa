@@ -87,36 +87,33 @@ export const AdminContestsPage = () => {
   const [probExamples, setProbExamples] = useState([
     {
       id: 1,
-      input: 'nums = [2,7,11,15], target = 9',
-      output: '[0,1]',
-      explanation: 'Because nums[0] + nums[1] == 9, we return [0, 1].'
+      input: '',
+      output: '',
+      explanation: ''
     }
   ]);
-  const [probConstraints, setProbConstraints] = useState('2 <= nums.length <= 10^4\n-10^9 <= nums[i] <= 10^9');
+  const [probConstraints, setProbConstraints] = useState('');
   const [probFollowUp, setProbFollowUp] = useState('');
 
   // Section C: Function Signature & Starter Code
   const [probFunctionConfig, setProbFunctionConfig] = useState({
-    functionName: 'twoSum',
-    returnType: 'int[]',
-    parameters: [
-      { name: 'nums', type: 'int[]' },
-      { name: 'target', type: 'int' }
-    ],
+    functionName: '',
+    returnType: 'int',
+    parameters: [],
     templates: {},
     primaryStarterCode: ''
   });
 
   // Section D: Test Cases
   const [probTestCases, setProbTestCases] = useState([
-    { inputData: '[2,7,11,15]\n9', expectedOutput: '[0,1]', isHidden: false }
+    { inputData: '', expectedOutput: '', isHidden: false }
   ]);
 
   // Section E: Hints & Editorial
-  const [probHints, setProbHints] = useState(['A brute force approach checks all possible pairs, but an associative hash map enables an optimal single pass.']);
-  const [probSolutionApproach, setProbSolutionApproach] = useState('One-pass Hash Table');
-  const [probTimeComplexity, setProbTimeComplexity] = useState('O(n)');
-  const [probSpaceComplexity, setProbSpaceComplexity] = useState('O(n)');
+  const [probHints, setProbHints] = useState(['']);
+  const [probSolutionApproach, setProbSolutionApproach] = useState('');
+  const [probTimeComplexity, setProbTimeComplexity] = useState('');
+  const [probSpaceComplexity, setProbSpaceComplexity] = useState('');
   const [probEditorial, setProbEditorial] = useState('');
 
   // Section F: Official Solutions
@@ -241,27 +238,24 @@ export const AdminContestsPage = () => {
     setProbCompanies('');
     setProbDescription('');
     setProbExamples([
-      { id: 1, input: 'nums = [2,7,11,15], target = 9', output: '[0,1]', explanation: 'Because nums[0] + nums[1] == 9, we return [0, 1].' }
+      { id: 1, input: '', output: '', explanation: '' }
     ]);
-    setProbConstraints('2 <= nums.length <= 10^4\n-10^9 <= nums[i] <= 10^9');
+    setProbConstraints('');
     setProbFollowUp('');
     setProbFunctionConfig({
-      functionName: 'twoSum',
-      returnType: 'int[]',
-      parameters: [
-        { name: 'nums', type: 'int[]' },
-        { name: 'target', type: 'int' }
-      ],
+      functionName: '',
+      returnType: 'int',
+      parameters: [],
       templates: {},
       primaryStarterCode: ''
     });
     setProbTestCases([
-      { inputData: '[2,7,11,15]\n9', expectedOutput: '[0,1]', isHidden: false }
+      { inputData: '', expectedOutput: '', isHidden: false }
     ]);
-    setProbHints(['A brute force approach checks all possible pairs, but an associative hash map enables an optimal single pass.']);
-    setProbSolutionApproach('One-pass Hash Table');
-    setProbTimeComplexity('O(n)');
-    setProbSpaceComplexity('O(n)');
+    setProbHints(['']);
+    setProbSolutionApproach('');
+    setProbTimeComplexity('');
+    setProbSpaceComplexity('');
     setProbEditorial('');
     setProbOfficialSolutions({
       JAVA: '',

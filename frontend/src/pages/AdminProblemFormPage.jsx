@@ -65,36 +65,33 @@ export const AdminProblemFormPage = () => {
   const [examples, setExamples] = useState([
     {
       id: 1,
-      input: 'nums = [2,7,11,15], target = 9',
-      output: '[0,1]',
-      explanation: 'Because nums[0] + nums[1] == 9, we return [0, 1].'
+      input: '',
+      output: '',
+      explanation: ''
     }
   ]);
-  const [constraints, setConstraints] = useState('2 <= nums.length <= 10^4\n-10^9 <= nums[i] <= 10^9\nOnly one valid answer exists.');
+  const [constraints, setConstraints] = useState('');
   const [followUp, setFollowUp] = useState('');
 
   // Section C: Function Signature & Starter Code
   const [functionConfig, setFunctionConfig] = useState({
-    functionName: 'twoSum',
-    returnType: 'int[]',
-    parameters: [
-      { name: 'nums', type: 'int[]' },
-      { name: 'target', type: 'int' }
-    ],
+    functionName: '',
+    returnType: 'int',
+    parameters: [],
     templates: {},
     primaryStarterCode: ''
   });
 
   // Section D: Test Cases
   const [testCases, setTestCases] = useState([
-    { inputData: '[2,7,11,15]\n9', expectedOutput: '[0,1]', isHidden: false }
+    { inputData: '', expectedOutput: '', isHidden: false }
   ]);
 
   // Section E: Hints & Editorial
-  const [hints, setHints] = useState(['A really brute force way would be to search for all possible pairs of numbers but that would be slow.']);
-  const [solutionApproach, setSolutionApproach] = useState('One-pass Hash Table');
-  const [timeComplexity, setTimeComplexity] = useState('O(n)');
-  const [spaceComplexity, setSpaceComplexity] = useState('O(n)');
+  const [hints, setHints] = useState(['']);
+  const [solutionApproach, setSolutionApproach] = useState('');
+  const [timeComplexity, setTimeComplexity] = useState('');
+  const [spaceComplexity, setSpaceComplexity] = useState('');
   const [editorial, setEditorial] = useState('');
 
   // Section F: Official Reference Solutions (Per language)
@@ -834,6 +831,7 @@ export const AdminProblemFormPage = () => {
               </div>
 
               <FunctionSignatureConfig
+                config={functionConfig}
                 initialFunctionName={functionConfig.functionName}
                 initialReturnType={functionConfig.returnType}
                 initialParameters={functionConfig.parameters}
