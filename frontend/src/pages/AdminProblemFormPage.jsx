@@ -435,15 +435,7 @@ export const AdminProblemFormPage = () => {
         {/* HEADER BAR */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <div className="flex items-center gap-2">
-              <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-[#0D684D] border border-emerald-200">
-                CodeXa Engine
-              </span>
-              <span className="text-xs text-slate-400 font-mono">
-                {slug ? `slug: /problems/${slug}` : 'Automated Generation'}
-              </span>
-            </div>
-            <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight mt-1">
+            <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">
               {isEditMode ? 'Edit Problem' : 'Create Problem'}
             </h1>
             <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
@@ -1091,13 +1083,6 @@ export const AdminProblemFormPage = () => {
                       Working reference solution uploaded by Admin for each language (distinct from auto-generated starter code).
                     </p>
                   </div>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-[#0D684D] border border-emerald-200 shadow-2xs">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#0D684D]"></span>
-                    Auto-fetched from Section C
-                  </span>
                 </div>
               </div>
 
