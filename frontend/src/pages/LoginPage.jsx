@@ -207,7 +207,7 @@ export const LoginPage = () => {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder={role === 'ADMIN' ? 'admin@codexa.com (or admin@codehub.com)' : 'student@codexa.com'}
+                placeholder="name@example.com"
                 required
                 className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50/80 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#0D684D] focus:bg-white transition-all"
               />

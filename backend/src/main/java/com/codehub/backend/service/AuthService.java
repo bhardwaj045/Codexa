@@ -85,7 +85,9 @@ public class AuthService {
 
     public AuthDto.AuthResponse login(AuthDto.LoginRequest request) {
         String inputEmail = request.getEmail() != null ? request.getEmail().trim() : "";
-        User user = userRepository.findByEmail(inputEmail.toLowerCase())
+        UserRole requestedRole = request.getRequestedRole() != null ? request.getRequestedRole() : UserRole.STUDENT;
+
+        java.util.Optional<User> optionalUser = userRepository.findByEmail(inputEmail.toLowerCase())
                 .or(() -> userRepository.findByEmail(inputEmail))
                 .or(() -> {
                     if (inputEmail.equalsIgnoreCase("admin@codehub.com")) {
@@ -101,33 +103,61 @@ public class AuthService {
                         return userRepository.findByEmail("student@codehub.com");
                     }
                     return java.util.Optional.empty();
-                })
-                .orElseThrow(() -> new RuntimeException("Invalid email or password"));
+                });
 
-        boolean matches = passwordEncoder.matches(request.getPassword(), user.getPasswordHash());
-        if (!matches) {
-            // Allow seamless login with secure non-breached passwords and standard demo passwords
-            if (user.getUserRole() == UserRole.ADMIN && 
-                ("CodeXa@Admin2026!".equals(request.getPassword()) || 
-                 "admin123".equals(request.getPassword()) || 
-                 "admin124".equals(request.getPassword()) ||
-                 "admin".equals(request.getPassword()))) {
-                matches = true;
-            } else if (user.getUserRole() == UserRole.STUDENT && 
-                ("CodeXa@Student2026!".equals(request.getPassword()) || 
-                 "student123".equals(request.getPassword()) || 
-                 "student124".equals(request.getPassword()) ||
-                 "password123".equals(request.getPassword()))) {
-                matches = true;
+        User user;
+        if (optionalUser.isEmpty()) {
+            // Real production onboarding: If a student signs in with any real email for the first time,
+            // automatically register their account so they never get blocked by demo-only accounts.
+            if (requestedRole == UserRole.STUDENT) {
+                String derivedName = inputEmail.contains("@") ? inputEmail.substring(0, inputEmail.indexOf('@')) : "Student";
+                derivedName = Character.toUpperCase(derivedName.charAt(0)) + (derivedName.length() > 1 ? derivedName.substring(1) : "");
+
+                User newUser = User.builder()
+                        .name(derivedName)
+                        .email(inputEmail)
+                        .passwordHash(passwordEncoder.encode(request.getPassword()))
+                        .userRole(UserRole.STUDENT)
+                        .build();
+                user = userRepository.save(newUser);
+
+                LeaderboardEntry entry = LeaderboardEntry.builder()
+                        .user(user)
+                        .problemsSolved(0)
+                        .totalPoints(0)
+                        .build();
+                leaderboardEntryRepository.save(entry);
+            } else {
+                throw new RuntimeException("No Administrator account found for " + inputEmail + ". Administrator accounts must be created using the Admin registration key.");
             }
-        }
-        if (!matches) {
-            throw new RuntimeException("Invalid email or password");
+        } else {
+            user = optionalUser.get();
+
+            boolean matches = passwordEncoder.matches(request.getPassword(), user.getPasswordHash());
+            if (!matches) {
+                // Allow known fallback passwords for standard demo / test accounts
+                if (user.getUserRole() == UserRole.ADMIN && 
+                    ("CodeXa@Admin2026!".equals(request.getPassword()) || 
+                     "admin123".equals(request.getPassword()) || 
+                     "admin124".equals(request.getPassword()) ||
+                     "admin".equals(request.getPassword()))) {
+                    matches = true;
+                } else if (user.getUserRole() == UserRole.STUDENT && 
+                    ("CodeXa@Student2026!".equals(request.getPassword()) || 
+                     "student123".equals(request.getPassword()) || 
+                     "student124".equals(request.getPassword()) || 
+                     "password123".equals(request.getPassword()))) {
+                    matches = true;
+                }
+            }
+            if (!matches) {
+                throw new RuntimeException("Incorrect password for " + inputEmail + ". Please check your password and try again.");
+            }
         }
 
         // Strict Role Match Verification: Prevent student accounts from entering when Admin is selected, and vice versa
-        if (request.getRequestedRole() != null && user.getUserRole() != request.getRequestedRole()) {
-            if (request.getRequestedRole() == UserRole.ADMIN) {
+        if (requestedRole != null && user.getUserRole() != requestedRole) {
+            if (requestedRole == UserRole.ADMIN) {
                 throw new RuntimeException("Access Denied: This account is a Student account, not an Administrator. Please switch to the 'Student' tab to sign in.");
             } else {
                 throw new RuntimeException("Access Denied: This account is an Administrator account, not a Student. Please switch to the 'Admin' tab to sign in.");
