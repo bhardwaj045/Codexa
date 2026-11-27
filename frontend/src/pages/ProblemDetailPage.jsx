@@ -68,8 +68,11 @@ export const ProblemDetailPage = () => {
   const location = useLocation();
   const { isAuthenticated, user, isAdmin } = useAuth();
   const contestId = new URLSearchParams(location.search).get('contestId');
-  const isContestantInContest = Boolean(contestId) && !isAdmin;
   const [contest, setContest] = useState(null);
+
+  // Contest lock is active ONLY during live contest window. When contest is finished or outside contest, unlock all solutions & editorial!
+  const isContestFinished = contest?.status === 'COMPLETED' || (contest?.endTime && Date.now() >= Date.parse(contest.endTime));
+  const isContestantInContest = Boolean(contestId) && !isAdmin && !isContestFinished;
 
   // Problem data
   const [problem, setProblem] = useState(null);
