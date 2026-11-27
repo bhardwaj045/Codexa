@@ -7,8 +7,8 @@ export const ProtectedRoute = ({ requireAdmin = false }) => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-900 flex items-center justify-center">
-        <div className="w-10 h-10 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
+      <div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center">
+        <div className="w-10 h-10 border-4 border-[#0D684D] border-t-transparent rounded-full animate-spin"></div>
       </div>
     );
   }

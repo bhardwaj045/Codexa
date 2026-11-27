@@ -144,7 +144,27 @@ export const ProblemDetailPage = () => {
   useEffect(() => {
     if (problem) {
       if (problem.starterCode && problem.starterCode.trim()) {
-        setSourceCode(problem.starterCode);
+        // If starterCode is JSON containing multi-language templates
+        let parsedTemplates = null;
+        try {
+          if (problem.starterCode.startsWith('{')) {
+            parsedTemplates = JSON.parse(problem.starterCode);
+          }
+        } catch (e) {}
+
+        const langKey = (language || '').toUpperCase();
+        if (parsedTemplates && (parsedTemplates[langKey] || parsedTemplates[language])) {
+          setSourceCode(parsedTemplates[langKey] || parsedTemplates[language]);
+        } else if (typeof problem.starterCode === 'string' && !parsedTemplates) {
+          setSourceCode(problem.starterCode);
+        } else {
+          const pMeta = getLeetCodeMetadata(problem.title);
+          if (pMeta && pMeta.starterTemplates && pMeta.starterTemplates[language]) {
+            setSourceCode(pMeta.starterTemplates[language]);
+          } else {
+            setSourceCode(`class Solution {\n    // Write your solution here\n}`);
+          }
+        }
       } else {
         const pMeta = getLeetCodeMetadata(problem.title);
         if (pMeta && pMeta.starterTemplates && pMeta.starterTemplates[language]) {
@@ -449,15 +469,23 @@ export const ProblemDetailPage = () => {
     }
   }
 
-  // LeetCode formatted examples
-  const examplesList = meta?.examples || [
-    {
-      id: 1,
-      input: problem?.sampleInput || 'Standard test input',
-      output: problem?.sampleOutput || 'Standard expected output',
-      explanation: 'Computed according to problem specifications.'
-    }
-  ];
+  // LeetCode formatted examples (supports parsed JSON array from Admin form or metadata fallback)
+  let parsedExamples = null;
+  if (problem?.sampleInput && typeof problem.sampleInput === 'string' && problem.sampleInput.trim().startsWith('[')) {
+    try {
+      parsedExamples = JSON.parse(problem.sampleInput);
+    } catch (e) {}
+  }
+  const examplesList = Array.isArray(parsedExamples) && parsedExamples.length > 0
+    ? parsedExamples
+    : (meta?.examples || [
+        {
+          id: 1,
+          input: problem?.sampleInput || 'Standard test input',
+          output: problem?.sampleOutput || 'Standard expected output',
+          explanation: 'Computed according to problem specifications.'
+        }
+      ]);
 
   // LeetCode formatted constraints
   const constraintsList = meta?.constraints || (

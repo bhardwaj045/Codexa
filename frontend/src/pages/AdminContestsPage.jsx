@@ -5,6 +5,7 @@ import { contestApi } from '../api/contestApi';
 import { problemApi } from '../api/problemApi';
 import { testCaseApi } from '../api/testCaseApi';
 import { AppLayout } from '../components/AppLayout';
+import { generateAllTemplates } from '../utils/codeSignatureGenerator';
 import { 
   Trophy, 
   Plus, 
@@ -673,40 +674,26 @@ export const AdminContestsPage = () => {
                     <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
                       Difficulty *
                     </label>
-                    <select
-                      value={probDifficulty}
-                      onChange={(e) => setProbDifficulty(e.target.value)}
-                      style={{ color: '#0f172a', backgroundColor: '#ffffff', opacity: 1 }}
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white text-slate-900 font-bold text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                    >
-                      <option value="EASY" style={{ color: '#0f172a', backgroundColor: '#ffffff' }} className="text-slate-900 bg-white font-bold py-1">EASY</option>
-                      <option value="MEDIUM" style={{ color: '#0f172a', backgroundColor: '#ffffff' }} className="text-slate-900 bg-white font-bold py-1">MEDIUM</option>
-                      <option value="HARD" style={{ color: '#0f172a', backgroundColor: '#ffffff' }} className="text-slate-900 bg-white font-bold py-1">HARD</option>
-                    </select>
-                  </div>
-                </div>
-
-                {/* Difficulty Quick Buttons */}
-                <div>
-                  <div className="grid grid-cols-3 gap-2">
-                    {[
-                      { id: 'EASY', label: 'EASY', activeClass: 'bg-emerald-100 text-emerald-950 border-emerald-500 ring-2 ring-emerald-500/20' },
-                      { id: 'MEDIUM', label: 'MEDIUM', activeClass: 'bg-amber-100 text-amber-950 border-amber-500 ring-2 ring-amber-500/20' },
-                      { id: 'HARD', label: 'HARD', activeClass: 'bg-rose-100 text-rose-950 border-rose-500 ring-2 ring-rose-500/20' },
-                    ].map((d) => (
-                      <button
-                        key={d.id}
-                        type="button"
-                        onClick={() => setProbDifficulty(d.id)}
-                        className={`py-1.5 px-3 rounded-lg border text-xs font-bold transition-all text-center ${
-                          probDifficulty === d.id
-                            ? d.activeClass
-                            : 'bg-white border-slate-300 text-slate-800 hover:bg-slate-50 hover:border-slate-400'
-                        }`}
-                      >
-                        {d.label}
-                      </button>
-                    ))}
+                    <div className="grid grid-cols-3 gap-1.5 h-[42px] items-center">
+                      {[
+                        { id: 'EASY', label: 'EASY', activeClass: 'bg-emerald-600 text-white border-emerald-600 font-extrabold shadow-sm' },
+                        { id: 'MEDIUM', label: 'MEDIUM', activeClass: 'bg-amber-500 text-white border-amber-500 font-extrabold shadow-sm' },
+                        { id: 'HARD', label: 'HARD', activeClass: 'bg-rose-600 text-white border-rose-600 font-extrabold shadow-sm' },
+                      ].map((d) => (
+                        <button
+                          key={d.id}
+                          type="button"
+                          onClick={() => setProbDifficulty(d.id)}
+                          className={`h-full px-2 rounded-xl border text-xs transition-all flex items-center justify-center ${
+                            probDifficulty === d.id
+                              ? d.activeClass
+                              : 'bg-white border-slate-300 text-slate-800 font-bold hover:bg-slate-50 hover:border-slate-400'
+                          }`}
+                        >
+                          {d.label}
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 </div>
 
@@ -804,17 +791,41 @@ export const AdminContestsPage = () => {
 
                 {/* Starter Code (Optional) */}
                 <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
-                    Starter Code Template (Optional)
-                  </label>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
+                      Starter Code Template (Optional)
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const rawTitle = probTitle || 'twoSum';
+                        const fnName = rawTitle.replace(/[^a-zA-Z0-9]/g, ' ').trim().split(/\s+/).map((w, i) => i === 0 ? w.toLowerCase() : w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join('') || 'solve';
+                        const allLangs = generateAllTemplates({
+                          functionName: fnName,
+                          returnType: 'int',
+                          parameters: [
+                            { name: 'nums', type: 'int[]' },
+                            { name: 'target', type: 'int' }
+                          ]
+                        });
+                        setProbStarterCode(JSON.stringify(allLangs, null, 2));
+                      }}
+                      className="text-[11px] font-bold text-emerald-700 hover:text-emerald-900 flex items-center gap-1 hover:underline cursor-pointer"
+                    >
+                      ⚡ Auto-Generate LeetCode 5-Language Signatures
+                    </button>
+                  </div>
                   <textarea
-                    rows={3}
+                    rows={4}
                     value={probStarterCode}
                     onChange={(e) => setProbStarterCode(e.target.value)}
-                    placeholder="class Solution:\n    def solve(self, ...):"
+                    placeholder="Enter starter code or click 'Auto-Generate LeetCode 5-Language Signatures'"
                     style={{ color: '#10b981', backgroundColor: '#0f172a', opacity: 1 }}
                     className="w-full px-3 py-2 rounded-xl border border-slate-300 bg-slate-900 text-emerald-400 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-mono text-xs"
                   />
+                  <p className="text-[10px] text-slate-500 mt-1">
+                    Tip: Generates automatic templates for Java, C++, C, Python, and JavaScript matching LeetCode specifications.
+                  </p>
                 </div>
 
                 {/* Actions */}
