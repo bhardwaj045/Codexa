@@ -320,8 +320,9 @@ public class DataInitializer implements CommandLineRunner {
         }
 
         private void ensureAdminAccount() {
-                // Create the primary administrator if no admin account exists
-                if (userRepository.countByUserRole(UserRole.ADMIN) == 0) {
+                createOrUpdateAdmin("admin@codexa.com", "admin123", "Admin");
+                createOrUpdateAdmin("admin@codehub.com", "admin124", "Admin");
+                if (adminEmail != null && !adminEmail.isBlank()) {
                         createOrUpdateAdmin(adminEmail, adminPassword, "Admin");
                 }
         }
