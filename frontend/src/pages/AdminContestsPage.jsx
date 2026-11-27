@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { Link, useNavigate } from 'react-router-dom';
 import { contestApi } from '../api/contestApi';
 import { problemApi } from '../api/problemApi';
+import { testCaseApi } from '../api/testCaseApi';
 import { AppLayout } from '../components/AppLayout';
 import { 
   Trophy, 
@@ -21,6 +22,20 @@ import {
   Flame,
   ArrowRight
 } from 'lucide-react';
+
+const POPULAR_TOPICS = [
+  'Arrays',
+  'Strings',
+  'Hash Table',
+  'Dynamic Programming',
+  'Math',
+  'Sorting',
+  'Trees',
+  'Binary Search',
+  'Two Pointers',
+  'Stack',
+  'Graph'
+];
 
 export const AdminContestsPage = () => {
   const [contests, setContests] = useState([]);
@@ -44,6 +59,18 @@ export const AdminContestsPage = () => {
   const [durationMinutes, setDurationMinutes] = useState(120); // 2 Hours
   const [selectedProblemIds, setSelectedProblemIds] = useState([]);
   const [currentTime, setCurrentTime] = useState(Date.now());
+
+  // Create New Problem Form State (Inside Contest Admin)
+  const [probTitle, setProbTitle] = useState('');
+  const [probDifficulty, setProbDifficulty] = useState('EASY');
+  const [probTopic, setProbTopic] = useState('Arrays');
+  const [probDescription, setProbDescription] = useState('');
+  const [probConstraints, setProbConstraints] = useState('');
+  const [probSampleInput, setProbSampleInput] = useState('');
+  const [probSampleOutput, setProbSampleOutput] = useState('');
+  const [probStarterCode, setProbStarterCode] = useState('');
+  const [probSubmitting, setProbSubmitting] = useState(false);
+  const [probError, setProbError] = useState('');
 
   useEffect(() => {
     fetchInitialData();
@@ -137,6 +164,77 @@ export const AdminContestsPage = () => {
     setSelectedProblemIds([]);
   };
 
+  const resetNewProblemForm = () => {
+    setProbTitle('');
+    setProbDifficulty('EASY');
+    setProbTopic('Arrays');
+    setProbDescription('');
+    setProbConstraints('');
+    setProbSampleInput('');
+    setProbSampleOutput('');
+    setProbStarterCode('');
+    setProbError('');
+  };
+
+  const handleCreateProblem = async (e) => {
+    e.preventDefault();
+    if (!probTitle.trim() || !probDescription.trim()) {
+      setProbError('Title and description are required.');
+      return;
+    }
+
+    setProbSubmitting(true);
+    setProbError('');
+    try {
+      const payload = {
+        title: probTitle.trim(),
+        description: probDescription.trim(),
+        difficulty: probDifficulty,
+        topic: probTopic.trim() || 'General',
+        problemConstraints: probConstraints.trim(),
+        sampleInput: probSampleInput.trim(),
+        sampleOutput: probSampleOutput.trim(),
+        starterCode: probStarterCode.trim() || `class Solution:\n    def solve(self, n: int) -> int:\n        # Write your solution here\n        pass`
+      };
+
+      const res = await problemApi.createProblem(payload);
+      const createdProblem = res.data;
+
+      // If sample input and output are provided, auto-generate initial test case
+      if (probSampleInput.trim() && probSampleOutput.trim() && createdProblem?.id) {
+        try {
+          await testCaseApi.addTestCase(createdProblem.id, {
+            inputData: probSampleInput.trim(),
+            expectedOutput: probSampleOutput.trim(),
+            isHidden: false,
+            testCaseOrder: 1
+          });
+        } catch (tcErr) {
+          console.warn('Initial test case creation warning:', tcErr);
+        }
+      }
+
+      // Refresh problem list from backend
+      const updatedProbsRes = await problemApi.getProblems();
+      const updatedList = updatedProbsRes.data || [];
+      setAllProblems(updatedList);
+
+      // Auto-select this newly created problem for the contest!
+      if (createdProblem?.id) {
+        setSelectedProblemIds((prev) => [...prev.filter(id => id !== createdProblem.id), createdProblem.id]);
+      }
+
+      setShowProblemModal(false);
+      resetNewProblemForm();
+      setActionSuccess(`Problem "${createdProblem.title}" created successfully and added to the platform problem list!`);
+    } catch (err) {
+      console.error('Failed to create problem:', err);
+      setProbError(err.response?.data?.message || err.message || 'Failed to create problem.');
+    } finally {
+      setProbSubmitting(false);
+    }
+  };
+
   return (
     <AppLayout title="Manage Contests">
       <div className="max-w-6xl mx-auto space-y-6 pb-16">
@@ -155,6 +253,16 @@ export const AdminContestsPage = () => {
             <span className="inline-flex items-center px-4 py-2 rounded-xl bg-emerald-50 border border-emerald-100 text-[#0D684D] text-xs font-bold">
               {contests.length} Contests
             </span>
+            <button
+              onClick={() => {
+                resetNewProblemForm();
+                setShowProblemModal(true);
+              }}
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white border border-slate-300 hover:border-slate-400 hover:bg-slate-50 text-slate-800 font-semibold text-sm shadow-xs transition-all shrink-0"
+            >
+              <Plus className="w-4 h-4 text-[#0D684D]" />
+              <span>Add New Problem</span>
+            </button>
             <button
               onClick={() => {
                 if (allProblems.length >= 5 && selectedProblemIds.length === 0) {
@@ -379,6 +487,17 @@ export const AdminContestsPage = () => {
                     <div className="flex items-center gap-3">
                       <button
                         type="button"
+                        onClick={() => {
+                          resetNewProblemForm();
+                          setShowProblemModal(true);
+                        }}
+                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-50 border border-emerald-200 text-[#0D684D] hover:bg-emerald-100 text-xs font-bold transition-colors"
+                      >
+                        <Plus className="w-3.5 h-3.5" />
+                        <span>Add New Question</span>
+                      </button>
+                      <button
+                        type="button"
                         onClick={selectFirst5}
                         className="text-xs font-semibold text-emerald-600 hover:text-emerald-700 underline"
                       >
@@ -472,6 +591,199 @@ export const AdminContestsPage = () => {
                     className="px-5 py-2.5 rounded-xl bg-[#0D684D] hover:bg-[#0A543E] text-white font-semibold text-xs sm:text-sm shadow-md transition-all hover:scale-105"
                   >
                     Create & Add Problems
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>,
+          document.body
+        )}
+
+        {/* ADD NEW PROBLEM MODAL (Mounted at document.body with higher z-index) */}
+        {showProblemModal && createPortal(
+          <div className="fixed inset-0 z-[10000] bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
+            <div className="bg-white rounded-3xl max-w-2xl w-full p-6 sm:p-8 shadow-2xl border border-slate-200 max-h-[92vh] overflow-y-auto space-y-5 animate-in zoom-in-95">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-9 h-9 rounded-xl bg-emerald-50 text-[#0D684D] border border-emerald-200 flex items-center justify-center">
+                    <FileCode className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-bold text-slate-900">Add New Problem</h2>
+                    <p className="text-xs text-slate-500">Adds problem to platform catalog & automatically selects it for contests.</p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowProblemModal(false)}
+                  className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {probError && (
+                <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-semibold flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+                  <span>{probError}</span>
+                </div>
+              )}
+
+              <form onSubmit={handleCreateProblem} className="space-y-4">
+                {/* Title & Difficulty */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div className="sm:col-span-2">
+                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
+                      Problem Title *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={probTitle}
+                      onChange={(e) => setProbTitle(e.target.value)}
+                      placeholder="e.g. Invert Binary Tree"
+                      className="w-full px-3.5 py-2 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
+                      Difficulty *
+                    </label>
+                    <select
+                      value={probDifficulty}
+                      onChange={(e) => setProbDifficulty(e.target.value)}
+                      className="w-full px-3.5 py-2 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm font-semibold"
+                    >
+                      <option value="EASY">EASY</option>
+                      <option value="MEDIUM">MEDIUM</option>
+                      <option value="HARD">HARD</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* Topic Selector */}
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
+                    Topic / Category
+                  </label>
+                  <div className="flex flex-wrap gap-1.5 mb-2">
+                    {POPULAR_TOPICS.map((t) => (
+                      <button
+                        key={t}
+                        type="button"
+                        onClick={() => setProbTopic(t)}
+                        className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-all ${
+                          probTopic === t
+                            ? 'bg-[#0D684D] text-white shadow-xs'
+                            : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+                        }`}
+                      >
+                        {t}
+                      </button>
+                    ))}
+                  </div>
+                  <input
+                    type="text"
+                    value={probTopic}
+                    onChange={(e) => setProbTopic(e.target.value)}
+                    placeholder="Or enter custom topic"
+                    className="w-full px-3.5 py-1.5 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 text-xs"
+                  />
+                </div>
+
+                {/* Description */}
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
+                    Problem Description *
+                  </label>
+                  <textarea
+                    rows={4}
+                    required
+                    value={probDescription}
+                    onChange={(e) => setProbDescription(e.target.value)}
+                    placeholder="Explain the problem statement, inputs, and expected task clearly..."
+                    className="w-full px-3.5 py-2 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm leading-relaxed"
+                  />
+                </div>
+
+                {/* Problem Constraints */}
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
+                    Constraints
+                  </label>
+                  <input
+                    type="text"
+                    value={probConstraints}
+                    onChange={(e) => setProbConstraints(e.target.value)}
+                    placeholder="e.g. 1 <= nums.length <= 10^5, -10^4 <= nums[i] <= 10^4"
+                    className="w-full px-3.5 py-2 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-mono text-xs"
+                  />
+                </div>
+
+                {/* Sample Input / Output */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
+                      Sample / Test Input
+                    </label>
+                    <textarea
+                      rows={2}
+                      value={probSampleInput}
+                      onChange={(e) => setProbSampleInput(e.target.value)}
+                      placeholder="e.g. [2,7,11,15], target = 9"
+                      className="w-full px-3 py-1.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-mono text-xs"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
+                      Sample / Expected Output
+                    </label>
+                    <textarea
+                      rows={2}
+                      value={probSampleOutput}
+                      onChange={(e) => setProbSampleOutput(e.target.value)}
+                      placeholder="e.g. [0,1]"
+                      className="w-full px-3 py-1.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-mono text-xs"
+                    />
+                  </div>
+                </div>
+
+                {/* Starter Code (Optional) */}
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
+                    Starter Code Template (Optional)
+                  </label>
+                  <textarea
+                    rows={3}
+                    value={probStarterCode}
+                    onChange={(e) => setProbStarterCode(e.target.value)}
+                    placeholder="class Solution:\n    def solve(self, ...):"
+                    className="w-full px-3 py-2 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-mono text-xs"
+                  />
+                </div>
+
+                {/* Actions */}
+                <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
+                  <button
+                    type="button"
+                    onClick={() => setShowProblemModal(false)}
+                    className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={probSubmitting}
+                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#0D684D] hover:bg-[#0A543E] disabled:opacity-60 text-white font-semibold text-xs sm:text-sm shadow-md transition-all hover:scale-105"
+                  >
+                    {probSubmitting ? (
+                      <span>Saving Problem...</span>
+                    ) : (
+                      <>
+                        <Plus className="w-4 h-4" />
+                        <span>Save & Add to Problem List</span>
+                      </>
+                    )}
                   </button>
                 </div>
               </form>
