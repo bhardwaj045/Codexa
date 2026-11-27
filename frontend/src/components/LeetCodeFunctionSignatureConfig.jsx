@@ -298,12 +298,12 @@ export const LeetCodeFunctionSignatureConfig = ({
       </div>
 
       {/* LANGUAGE STARTER CODE PREVIEW & EDIT SECTION */}
-      <div className="rounded-2xl border border-slate-300 overflow-hidden bg-white shadow-xs">
+      <div className="rounded-2xl border-2 border-slate-400 overflow-hidden bg-white shadow-xs">
         {/* Languages Tabs Bar */}
-        <div className="px-4 py-2.5 bg-slate-900 flex flex-wrap items-center justify-between gap-3 text-white border-b border-slate-800">
+        <div className="px-4 py-2.5 bg-slate-100 flex flex-wrap items-center justify-between gap-3 text-slate-900 border-b border-slate-300">
           <div className="flex items-center gap-1.5 flex-wrap">
-            <span className="text-xs font-bold text-slate-400 uppercase tracking-wider mr-2 flex items-center gap-1.5">
-              <Code2 className="w-3.5 h-3.5 text-emerald-400" />
+            <span className="text-xs font-bold text-slate-700 uppercase tracking-wider mr-2 flex items-center gap-1.5">
+              <Code2 className="w-3.5 h-3.5 text-[#0D684D]" />
               <span>Language:</span>
             </span>
 
@@ -315,15 +315,15 @@ export const LeetCodeFunctionSignatureConfig = ({
                   key={lang.id}
                   type="button"
                   onClick={() => setSelectedLanguage(lang.id)}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
                     active
-                      ? 'bg-emerald-600 text-white shadow-sm'
-                      : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+                      ? 'bg-[#0D684D] text-white shadow-xs font-bold'
+                      : 'bg-white text-slate-700 border border-slate-300 hover:bg-slate-50 hover:text-slate-900 font-semibold'
                   }`}
                 >
                   <span>{lang.name}</span>
                   {hasManual && (
-                    <span className="w-1.5 h-1.5 rounded-full bg-amber-400" title="Customized by Admin"></span>
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500" title="Customized by Admin"></span>
                   )}
                 </button>
               );
@@ -335,7 +335,7 @@ export const LeetCodeFunctionSignatureConfig = ({
               <button
                 type="button"
                 onClick={() => resetLanguageToAuto(selectedLanguage)}
-                className="text-[11px] text-amber-400 hover:text-amber-300 underline font-medium"
+                className="text-xs text-amber-600 hover:text-amber-800 underline font-bold cursor-pointer"
               >
                 Reset to Auto
               </button>
@@ -344,27 +344,27 @@ export const LeetCodeFunctionSignatureConfig = ({
             <button
               type="button"
               onClick={handleCopy}
-              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-mono transition-colors"
+              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 text-xs font-semibold transition-colors cursor-pointer shadow-xs"
               title="Copy code"
             >
-              {copied ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
-              <span>{copied ? 'Copied' : 'Copy'}</span>
+              {copied ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+              <span>{copied ? 'Copied' : 'Copy Code'}</span>
             </button>
           </div>
         </div>
 
         {/* Code Editor Window */}
-        <div className="relative">
-          <div className="px-4 py-2 bg-slate-950 text-slate-400 font-mono text-[11px] flex items-center justify-between border-b border-slate-900">
-            <span className="flex items-center gap-1.5 text-emerald-400">
-              <Sparkles className="w-3 h-3" />
+        <div className="relative bg-white">
+          <div className="px-4 py-2 bg-slate-50 text-slate-600 font-mono text-[11px] flex items-center justify-between border-b border-slate-200">
+            <span className="flex items-center gap-1.5 text-emerald-800 font-semibold">
+              <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
               <span>
                 {isManualEdit[selectedLanguage] 
                   ? 'Customized by Admin (Manual Edit)' 
                   : 'Auto-Generated Function Signature & Starter Code'}
               </span>
             </span>
-            <span>solution.{SUPPORTED_LANGUAGES.find(l => l.id === selectedLanguage)?.ext || 'txt'}</span>
+            <span className="font-semibold text-slate-500">solution.{SUPPORTED_LANGUAGES.find(l => l.id === selectedLanguage)?.ext || 'txt'}</span>
           </div>
 
           <textarea
@@ -373,8 +373,8 @@ export const LeetCodeFunctionSignatureConfig = ({
             onChange={(e) => handleCodeChange(selectedLanguage, e.target.value)}
             placeholder="// Starter code appears here automatically..."
             spellCheck="false"
-            style={{ color: '#6ee7b7', backgroundColor: '#020617', opacity: 1 }}
-            className="w-full p-4 font-mono text-xs sm:text-sm leading-relaxed bg-slate-950 text-emerald-300 focus:outline-none resize-y selection:bg-emerald-900/60"
+            style={{ color: '#0f172a', backgroundColor: '#ffffff', opacity: 1 }}
+            className="w-full p-4 font-mono text-xs sm:text-sm leading-relaxed bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none resize-y font-semibold selection:bg-emerald-100"
           />
         </div>
       </div>

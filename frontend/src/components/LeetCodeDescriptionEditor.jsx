@@ -216,9 +216,9 @@ export const LeetCodeDescriptionEditor = ({
   };
 
   return (
-    <div className="rounded-2xl border border-slate-300 overflow-hidden bg-white shadow-xs">
+    <div className="rounded-2xl border-2 border-slate-400 overflow-hidden bg-white shadow-xs">
       {/* TOOLBAR HEADER */}
-      <div className="px-3 py-2 bg-slate-100 border-b border-slate-200 flex flex-wrap items-center justify-between gap-2">
+      <div className="px-3 py-2 bg-slate-100 border-b border-slate-300 flex flex-wrap items-center justify-between gap-2">
         {/* Formatting Actions */}
         <div className="flex items-center flex-wrap gap-1">
           <button
@@ -369,7 +369,7 @@ export const LeetCodeDescriptionEditor = ({
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
           style={{ color: '#0f172a', backgroundColor: '#ffffff', opacity: 1 }}
-          className="w-full p-4 text-sm font-normal text-slate-900 bg-white placeholder:text-slate-400 focus:outline-none leading-relaxed resize-y font-sans"
+          className="w-full p-4 text-sm font-medium text-slate-900 bg-white placeholder:text-slate-400 focus:outline-none leading-relaxed resize-y font-sans selection:bg-emerald-100"
         />
       ) : (
         <div className="p-5 min-h-[220px] bg-slate-50/50 space-y-2 overflow-y-auto max-h-[500px]">

@@ -303,6 +303,33 @@ export const AdminProblemFormPage = () => {
     });
   };
 
+  // Fetch Section C generated starter code into Section F official solution
+  const handleFetchSignatureFromSectionC = (languageId = null) => {
+    const targetLang = languageId || solutionTab;
+    const srcCode = functionConfig?.templates?.[targetLang];
+    if (srcCode) {
+      setOfficialSolutions(prev => ({
+        ...prev,
+        [targetLang]: srcCode
+      }));
+      setStatusMessage(`Fetched ${targetLang} signature from Section C.`);
+    } else {
+      setStatusMessage(`No signature generated yet for ${targetLang} in Section C.`);
+    }
+  };
+
+  const handleFetchAllSignaturesFromSectionC = () => {
+    if (functionConfig?.templates && Object.keys(functionConfig.templates).length > 0) {
+      setOfficialSolutions(prev => ({
+        ...prev,
+        ...functionConfig.templates
+      }));
+      setStatusMessage('Fetched all 5 language signatures from Section C.');
+    } else {
+      setStatusMessage('No signatures generated yet in Section C.');
+    }
+  };
+
   // Submit Handler
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -1052,7 +1079,7 @@ export const AdminProblemFormPage = () => {
             {/* SECTION F: OFFICIAL SOLUTION CODE                              */}
             {/* ============================================================== */}
             <div id="section-F" className="bg-white rounded-3xl border border-slate-300 shadow-xs p-6 sm:p-8 space-y-6">
-              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-200 pb-4 gap-4">
                 <div className="flex items-center gap-2.5">
                   <div className="w-8 h-8 rounded-lg bg-emerald-50 text-[#0D684D] border border-emerald-200 flex items-center justify-center font-bold">
                     <Sparkles className="w-4 h-4" />
@@ -1064,21 +1091,43 @@ export const AdminProblemFormPage = () => {
                     </p>
                   </div>
                 </div>
+
+                {/* Fetch from Section C Quick Action Buttons */}
+                <div className="flex items-center gap-2 flex-wrap">
+                  <button
+                    type="button"
+                    onClick={() => handleFetchSignatureFromSectionC(solutionTab)}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-[#0D684D] border border-emerald-300 text-xs font-bold transition-all shadow-xs cursor-pointer"
+                    title={`Fetch auto-generated ${solutionTab} signature from Section C`}
+                  >
+                    <Sparkles className="w-3.5 h-3.5" />
+                    <span>Fetch {solutionTab} from Section C</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handleFetchAllSignaturesFromSectionC}
+                    className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 text-xs font-bold transition-all shadow-xs cursor-pointer"
+                    title="Fetch all 5 language signatures from Section C"
+                  >
+                    <span>⚡ Fetch All 5</span>
+                  </button>
+                </div>
               </div>
 
-              {/* Multi-language Solution Tabs */}
-              <div className="rounded-2xl border border-slate-300 overflow-hidden bg-slate-950">
-                <div className="px-4 py-2 bg-slate-900 border-b border-slate-800 flex items-center justify-between">
-                  <div className="flex items-center gap-2">
+              {/* Multi-language Solution Tabs & High-Contrast White Editor */}
+              <div className="rounded-2xl border-2 border-slate-400 overflow-hidden bg-white shadow-xs">
+                <div className="px-4 py-2.5 bg-slate-100 border-b border-slate-300 flex flex-wrap items-center justify-between gap-3">
+                  <div className="flex items-center gap-2 flex-wrap">
                     {SUPPORTED_LANGUAGES.map(lang => (
                       <button
                         key={lang.id}
                         type="button"
                         onClick={() => setSolutionTab(lang.id)}
-                        className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
+                        className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                           solutionTab === lang.id
-                            ? 'bg-emerald-600 text-white'
-                            : 'text-slate-400 hover:text-white'
+                            ? 'bg-[#0D684D] text-white shadow-xs font-bold'
+                            : 'bg-white text-slate-700 border border-slate-300 hover:bg-slate-50 hover:text-slate-900 font-semibold'
                         }`}
                       >
                         {lang.name}
@@ -1086,18 +1135,47 @@ export const AdminProblemFormPage = () => {
                     ))}
                   </div>
 
-                  <span className="text-[11px] font-mono text-slate-500">Official Solution Code</span>
+                  <div className="flex items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={() => handleFetchSignatureFromSectionC(solutionTab)}
+                      className="text-xs font-bold text-[#0D684D] hover:underline flex items-center gap-1 cursor-pointer"
+                    >
+                      <Sparkles className="w-3.5 h-3.5" />
+                      <span>Fetch from Section C ({solutionTab})</span>
+                    </button>
+                    <span className="text-[11px] font-mono text-slate-500 font-semibold">Official Solution Code</span>
+                  </div>
                 </div>
 
-                <textarea
-                  rows={10}
-                  value={officialSolutions[solutionTab] || ''}
-                  onChange={(e) => setOfficialSolutions(prev => ({ ...prev, [solutionTab]: e.target.value }))}
-                  placeholder={`// Enter official working ${solutionTab} solution here...`}
-                  spellCheck="false"
-                  style={{ color: '#34d399', backgroundColor: '#020617', opacity: 1 }}
-                  className="w-full p-4 font-mono text-xs sm:text-sm bg-slate-950 text-emerald-400 focus:outline-none leading-relaxed resize-y"
-                />
+                <div className="relative bg-white">
+                  <textarea
+                    rows={12}
+                    value={officialSolutions[solutionTab] || ''}
+                    onChange={(e) => setOfficialSolutions(prev => ({ ...prev, [solutionTab]: e.target.value }))}
+                    placeholder={`// Enter official working ${solutionTab} solution here, or click "Fetch from Section C" above...`}
+                    spellCheck="false"
+                    style={{ color: '#0f172a', backgroundColor: '#ffffff', opacity: 1 }}
+                    className="w-full p-4 font-mono text-xs sm:text-sm bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none leading-relaxed resize-y font-semibold selection:bg-emerald-100"
+                  />
+
+                  {/* Empty state overlay suggestion */}
+                  {!officialSolutions[solutionTab] && (
+                    <div className="p-3 bg-slate-50 border-t border-slate-200 flex items-center justify-between text-xs text-slate-700">
+                      <span className="flex items-center gap-2">
+                        <Sparkles className="w-4 h-4 text-emerald-600 shrink-0" />
+                        <span>Ready to code: Pre-fill the <strong>{solutionTab}</strong> function skeleton generated in Section C.</span>
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => handleFetchSignatureFromSectionC(solutionTab)}
+                        className="px-3 py-1 rounded-lg bg-[#0D684D] hover:bg-[#0A543E] text-white font-bold text-xs shrink-0 shadow-xs transition-colors cursor-pointer"
+                      >
+                        ⚡ Fetch from Section C
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
 
