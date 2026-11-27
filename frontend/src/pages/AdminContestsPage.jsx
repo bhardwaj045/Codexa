@@ -5,7 +5,9 @@ import { contestApi } from '../api/contestApi';
 import { problemApi } from '../api/problemApi';
 import { testCaseApi } from '../api/testCaseApi';
 import { AppLayout } from '../components/AppLayout';
-import { generateAllTemplates } from '../utils/codeSignatureGenerator';
+import { ProblemDescriptionEditor } from '../components/LeetCodeDescriptionEditor';
+import { FunctionSignatureConfig } from '../components/LeetCodeFunctionSignatureConfig';
+import { generateSlug, SUPPORTED_LANGUAGES, generateAllTemplates } from '../utils/codeSignatureGenerator';
 import { 
   Trophy, 
   Plus, 
@@ -22,7 +24,16 @@ import {
   Layers,
   Flame,
   ArrowRight,
-  Radio
+  Radio,
+  CheckCircle2,
+  Code2,
+  Check,
+  Lightbulb,
+  FileText,
+  Building,
+  BookOpen,
+  Trash2,
+  HardDrive
 } from 'lucide-react';
 
 const POPULAR_TOPICS = [
@@ -62,157 +73,270 @@ export const AdminContestsPage = () => {
   const [selectedProblemIds, setSelectedProblemIds] = useState([]);
   const [currentTime, setCurrentTime] = useState(Date.now());
 
-  // Create New Problem Form State (Inside Contest Admin)
+  // Create New Problem Form State (Inside Contest Admin - Full LeetCode-style specification)
+  const [probActiveSection, setProbActiveSection] = useState('A');
   const [probTitle, setProbTitle] = useState('');
+  const [probSlug, setProbSlug] = useState('');
+  const [probSlugCustomized, setProbSlugCustomized] = useState(false);
   const [probDifficulty, setProbDifficulty] = useState('EASY');
   const [probTopic, setProbTopic] = useState('Arrays');
+  const [probCompanies, setProbCompanies] = useState('');
+
+  // Section B: Description & Examples
   const [probDescription, setProbDescription] = useState('');
-  const [probConstraints, setProbConstraints] = useState('');
-  const [probSampleInput, setProbSampleInput] = useState('');
-  const [probSampleOutput, setProbSampleOutput] = useState('');
-  const [probStarterCode, setProbStarterCode] = useState('');
+  const [probExamples, setProbExamples] = useState([
+    {
+      id: 1,
+      input: 'nums = [2,7,11,15], target = 9',
+      output: '[0,1]',
+      explanation: 'Because nums[0] + nums[1] == 9, we return [0, 1].'
+    }
+  ]);
+  const [probConstraints, setProbConstraints] = useState('2 <= nums.length <= 10^4\n-10^9 <= nums[i] <= 10^9');
+  const [probFollowUp, setProbFollowUp] = useState('');
+
+  // Section C: Function Signature & Starter Code
+  const [probFunctionConfig, setProbFunctionConfig] = useState({
+    functionName: 'twoSum',
+    returnType: 'int[]',
+    parameters: [
+      { name: 'nums', type: 'int[]' },
+      { name: 'target', type: 'int' }
+    ],
+    templates: {},
+    primaryStarterCode: ''
+  });
+
+  // Section D: Test Cases
+  const [probTestCases, setProbTestCases] = useState([
+    { inputData: '[2,7,11,15]\n9', expectedOutput: '[0,1]', isHidden: false }
+  ]);
+
+  // Section E: Hints & Editorial
+  const [probHints, setProbHints] = useState(['A brute force approach checks all possible pairs, but an associative hash map enables an optimal single pass.']);
+  const [probSolutionApproach, setProbSolutionApproach] = useState('One-pass Hash Table');
+  const [probTimeComplexity, setProbTimeComplexity] = useState('O(n)');
+  const [probSpaceComplexity, setProbSpaceComplexity] = useState('O(n)');
+  const [probEditorial, setProbEditorial] = useState('');
+
+  // Section F: Official Solutions
+  const [probOfficialSolutions, setProbOfficialSolutions] = useState({
+    JAVA: '',
+    CPP: '',
+    PYTHON: '',
+    JAVASCRIPT: '',
+    C: ''
+  });
+  const [probSolutionTab, setProbSolutionTab] = useState('JAVA');
+  const [probManualSolutionEdit, setProbManualSolutionEdit] = useState({});
+
   const [probSubmitting, setProbSubmitting] = useState(false);
   const [probError, setProbError] = useState('');
 
+  // Automatically update slug when title changes
   useEffect(() => {
-    fetchInitialData();
-    const timer = setInterval(() => setCurrentTime(Date.now()), 1000);
-    return () => clearInterval(timer);
-  }, []);
+    if (!probSlugCustomized && probTitle) {
+      setProbSlug(generateSlug(probTitle));
+    }
+  }, [probTitle, probSlugCustomized]);
 
-  const fetchInitialData = async () => {
-    try {
-      setLoading(true);
-      const [contestRes, probRes] = await Promise.all([
-        contestApi.getAllContests(),
-        problemApi.getProblems()
-      ]);
-      setContests(contestRes.data || []);
-      const problemsList = probRes.data || [];
-      setAllProblems(problemsList);
+  // Automated fetch: sync generated signatures from Section C to Section F
+  useEffect(() => {
+    if (probFunctionConfig?.templates && Object.keys(probFunctionConfig.templates).length > 0) {
+      setProbOfficialSolutions(prev => {
+        let changed = false;
+        const next = { ...prev };
+        Object.entries(probFunctionConfig.templates).forEach(([lang, templateCode]) => {
+          if (!probManualSolutionEdit[lang] || !next[lang] || next[lang].trim() === '') {
+            if (next[lang] !== templateCode) {
+              next[lang] = templateCode;
+              changed = true;
+            }
+          }
+        });
+        return changed ? next : prev;
+      });
+    }
+  }, [probFunctionConfig?.templates, probManualSolutionEdit]);
 
-      // Pre-select first 5 problems by default
-      if (problemsList.length >= 5) {
-        setSelectedProblemIds(problemsList.slice(0, 5).map(p => p.id));
-      } else {
-        setSelectedProblemIds(problemsList.map(p => p.id));
-      }
-    } catch (err) {
-      console.error('Failed to load admin contest data', err);
-    } finally {
-      setLoading(false);
+  // Example operations
+  const handleAddExample = () => {
+    setProbExamples(prev => [
+      ...prev,
+      { id: prev.length + 1, input: '', output: '', explanation: '' }
+    ]);
+  };
+
+  const handleRemoveExample = (idx) => {
+    if (probExamples.length === 1) return;
+    setProbExamples(prev => prev.filter((_, i) => i !== idx).map((ex, newIdx) => ({ ...ex, id: newIdx + 1 })));
+  };
+
+  const handleExampleChange = (idx, field, val) => {
+    setProbExamples(prev => {
+      const updated = [...prev];
+      updated[idx] = { ...updated[idx], [field]: val };
+      return updated;
+    });
+  };
+
+  const handleSyncExamplesToTestCases = () => {
+    const newCases = probExamples
+      .filter(ex => ex.input.trim() || ex.output.trim())
+      .map((ex, idx) => ({
+        inputData: ex.input.trim(),
+        expectedOutput: ex.output.trim(),
+        isHidden: idx > 0
+      }));
+    if (newCases.length > 0) {
+      setProbTestCases(newCases);
     }
   };
 
-  const handleCreateContest = async (e) => {
-    e.preventDefault();
-    setActionError('');
-    setActionSuccess('');
+  // Test Case operations
+  const handleAddTestCase = () => {
+    setProbTestCases(prev => [
+      ...prev,
+      { inputData: '', expectedOutput: '', isHidden: false }
+    ]);
+  };
 
-    if (selectedProblemIds.length === 0) {
-      setActionError('Please select at least 1 problem for the contest.');
+  const handleRemoveTestCase = (idx) => {
+    if (probTestCases.length === 1) return;
+    setProbTestCases(prev => prev.filter((_, i) => i !== idx));
+  };
+
+  const handleTestCaseChange = (idx, field, val) => {
+    setProbTestCases(prev => {
+      const updated = [...prev];
+      updated[idx] = { ...updated[idx], [field]: val };
+      return updated;
+    });
+  };
+
+  // Hints operations
+  const handleAddHint = () => setProbHints(prev => [...prev, '']);
+  const handleRemoveHint = (idx) => {
+    if (probHints.length === 1) {
+      setProbHints(['']);
       return;
     }
-
-    try {
-      // Send local formatted ISO datetime (YYYY-MM-DDTHH:mm:ss) without UTC distortion so contest starts at exact scheduled local time
-      const formattedStartTime = startTime.length === 16 ? `${startTime}:00` : startTime;
-
-      await contestApi.createContest({
-        title,
-        description,
-        startTime: formattedStartTime,
-        durationMinutes: parseInt(durationMinutes) || 120,
-        problemIds: selectedProblemIds
-      });
-
-      setActionSuccess(`Contest "${title}" created successfully with ${selectedProblemIds.length} problems!`);
-      setShowModal(false);
-      setTitle('');
-      setDescription('');
-      fetchInitialData();
-    } catch (err) {
-      console.error(err);
-      setActionError(err.response?.data?.message || 'Failed to create contest.');
-    }
+    setProbHints(prev => prev.filter((_, i) => i !== idx));
   };
-
-  const handlePublish = async (contestId) => {
-    try {
-      await contestApi.publishContest(contestId);
-      setActionSuccess('Contest published and opened for contestants!');
-      fetchInitialData();
-    } catch (err) {
-      console.error(err);
-      setActionError('Failed to publish contest.');
-    }
-  };
-
-  const toggleProblemSelection = (id) => {
-    setActionError('');
-    if (selectedProblemIds.includes(id)) {
-      setSelectedProblemIds(selectedProblemIds.filter(pid => pid !== id));
-    } else {
-      setSelectedProblemIds([...selectedProblemIds, id]);
-    }
-  };
-
-  const selectFirst5 = () => {
-    setActionError('');
-    setSelectedProblemIds(allProblems.slice(0, 5).map(p => p.id));
-  };
-
-  const clearAllProblems = () => {
-    setSelectedProblemIds([]);
+  const handleHintChange = (idx, val) => {
+    setProbHints(prev => {
+      const updated = [...prev];
+      updated[idx] = val;
+      return updated;
+    });
   };
 
   const resetNewProblemForm = () => {
+    setProbActiveSection('A');
     setProbTitle('');
+    setProbSlug('');
+    setProbSlugCustomized(false);
     setProbDifficulty('EASY');
     setProbTopic('Arrays');
+    setProbCompanies('');
     setProbDescription('');
-    setProbConstraints('');
-    setProbSampleInput('');
-    setProbSampleOutput('');
-    setProbStarterCode('');
+    setProbExamples([
+      { id: 1, input: 'nums = [2,7,11,15], target = 9', output: '[0,1]', explanation: 'Because nums[0] + nums[1] == 9, we return [0, 1].' }
+    ]);
+    setProbConstraints('2 <= nums.length <= 10^4\n-10^9 <= nums[i] <= 10^9');
+    setProbFollowUp('');
+    setProbFunctionConfig({
+      functionName: 'twoSum',
+      returnType: 'int[]',
+      parameters: [
+        { name: 'nums', type: 'int[]' },
+        { name: 'target', type: 'int' }
+      ],
+      templates: {},
+      primaryStarterCode: ''
+    });
+    setProbTestCases([
+      { inputData: '[2,7,11,15]\n9', expectedOutput: '[0,1]', isHidden: false }
+    ]);
+    setProbHints(['A brute force approach checks all possible pairs, but an associative hash map enables an optimal single pass.']);
+    setProbSolutionApproach('One-pass Hash Table');
+    setProbTimeComplexity('O(n)');
+    setProbSpaceComplexity('O(n)');
+    setProbEditorial('');
+    setProbOfficialSolutions({
+      JAVA: '',
+      CPP: '',
+      PYTHON: '',
+      JAVASCRIPT: '',
+      C: ''
+    });
+    setProbSolutionTab('JAVA');
+    setProbManualSolutionEdit({});
     setProbError('');
   };
 
   const handleCreateProblem = async (e) => {
-    e.preventDefault();
+    if (e && e.preventDefault) e.preventDefault();
     if (!probTitle.trim() || !probDescription.trim()) {
-      setProbError('Title and description are required.');
+      setProbError('Problem Title and Description are required.');
       return;
     }
 
     setProbSubmitting(true);
     setProbError('');
     try {
+      const validHints = probHints.map(h => h.trim()).filter(Boolean);
+
+      // Multi-language starter code templates stored as JSON
+      const starterCodePayload = probFunctionConfig.templates && Object.keys(probFunctionConfig.templates).length > 0
+        ? JSON.stringify(probFunctionConfig.templates)
+        : probFunctionConfig.primaryStarterCode || '';
+
+      // Official solutions stored as JSON
+      const officialSolPayload = JSON.stringify(probOfficialSolutions);
+
+      // Examples stored as JSON array in sampleInput for multi-example rendering
+      const sampleInputPayload = JSON.stringify(probExamples);
+      const primarySampleOutput = probExamples[0]?.output || '';
+
+      // Format approach with complexity
+      const fullApproach = `${probSolutionApproach.trim()} | Time: ${probTimeComplexity.trim()} | Space: ${probSpaceComplexity.trim()}`;
+
       const payload = {
         title: probTitle.trim(),
         description: probDescription.trim(),
         difficulty: probDifficulty,
-        topic: probTopic.trim() || 'General',
+        topic: probTopic.trim() || 'Arrays',
         problemConstraints: probConstraints.trim(),
-        sampleInput: probSampleInput.trim(),
-        sampleOutput: probSampleOutput.trim(),
-        starterCode: probStarterCode.trim() || `class Solution:\n    def solve(self, n: int) -> int:\n        # Write your solution here\n        pass`
+        sampleInput: sampleInputPayload,
+        sampleOutput: primarySampleOutput,
+        hints: validHints.length > 0 ? JSON.stringify(validHints) : '',
+        starterCode: starterCodePayload,
+        solutionCode: officialSolPayload,
+        solutionApproach: fullApproach,
+        editorial: probEditorial.trim(),
+        companies: probCompanies.trim(),
+        followUp: probFollowUp.trim()
       };
 
       const res = await problemApi.createProblem(payload);
       const createdProblem = res.data;
 
-      // If sample input and output are provided, auto-generate initial test case
-      if (probSampleInput.trim() && probSampleOutput.trim() && createdProblem?.id) {
-        try {
-          await testCaseApi.addTestCase(createdProblem.id, {
-            inputData: probSampleInput.trim(),
-            expectedOutput: probSampleOutput.trim(),
-            isHidden: false,
-            testCaseOrder: 1
-          });
-        } catch (tcErr) {
-          console.warn('Initial test case creation warning:', tcErr);
+      // Add all defined judge test cases
+      if (createdProblem?.id) {
+        const validTestCases = probTestCases.filter(tc => tc.inputData.trim() || tc.expectedOutput.trim());
+        for (let i = 0; i < validTestCases.length; i++) {
+          const tc = validTestCases[i];
+          try {
+            await testCaseApi.createTestCase(createdProblem.id, {
+              inputData: tc.inputData,
+              expectedOutput: tc.expectedOutput,
+              isHidden: Boolean(tc.isHidden),
+              testCaseOrder: i + 1
+            });
+          } catch (tcErr) {
+            console.warn('Test case creation warning:', tcErr);
+          }
         }
       }
 
@@ -228,7 +352,7 @@ export const AdminContestsPage = () => {
 
       setShowProblemModal(false);
       resetNewProblemForm();
-      setActionSuccess(`Problem "${createdProblem.title}" created successfully and added to the platform problem list!`);
+      setActionSuccess(`Problem "${createdProblem.title}" created with full specifications and added to contest selection!`);
     } catch (err) {
       console.error('Failed to create problem:', err);
       setProbError(err.response?.data?.message || err.message || 'Failed to create problem.');
@@ -613,18 +737,19 @@ export const AdminContestsPage = () => {
           document.body
         )}
 
-        {/* ADD NEW PROBLEM MODAL (Mounted at document.body with higher z-index) */}
+        {/* ADD NEW PROBLEM MODAL (Complete LeetCode-style specification) */}
         {showProblemModal && createPortal(
-          <div className="fixed inset-0 z-[10000] bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
-            <div className="bg-white rounded-3xl max-w-2xl w-full p-6 sm:p-8 shadow-2xl border border-slate-200 max-h-[92vh] overflow-y-auto space-y-5 animate-in zoom-in-95">
-              <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+          <div className="fixed inset-0 z-[10000] bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-3 sm:p-4">
+            <div className="bg-white rounded-3xl max-w-4xl w-full p-5 sm:p-7 shadow-2xl border-2 border-slate-300 max-h-[92vh] flex flex-col space-y-4 animate-in zoom-in-95">
+              {/* Header */}
+              <div className="flex items-center justify-between border-b border-slate-200 pb-3 shrink-0">
                 <div className="flex items-center gap-2.5">
                   <div className="w-9 h-9 rounded-xl bg-emerald-50 text-[#0D684D] border border-emerald-200 flex items-center justify-center">
                     <FileCode className="w-5 h-5" />
                   </div>
                   <div>
-                    <h2 className="text-xl font-bold text-slate-900">Add New Problem</h2>
-                    <p className="text-xs text-slate-500">Adds problem to platform catalog & automatically selects it for contests.</p>
+                    <h2 className="text-lg sm:text-xl font-bold text-slate-900">Add New Problem (Full Specifications)</h2>
+                    <p className="text-xs text-slate-500">Configure all problem sections (A to F) & auto-select it for this contest.</p>
                   </div>
                 </div>
                 <button
@@ -636,211 +761,574 @@ export const AdminContestsPage = () => {
                 </button>
               </div>
 
+              {/* Section Navigation Tabs */}
+              <div className="flex items-center gap-1.5 overflow-x-auto pb-1 shrink-0 border-b border-slate-100 scrollbar-none">
+                {[
+                  { key: 'A', label: 'A. Basic Info', icon: FileText },
+                  { key: 'B', label: 'B. Description & Examples', icon: BookOpen },
+                  { key: 'C', label: 'C. Function Signature', icon: Code2 },
+                  { key: 'D', label: 'D. Test Cases', icon: CheckCircle2 },
+                  { key: 'E', label: 'E. Hints & Editorial', icon: Lightbulb },
+                  { key: 'F', label: 'F. Official Solution', icon: Sparkles }
+                ].map((sec) => {
+                  const Icon = sec.icon;
+                  const isActive = probActiveSection === sec.key;
+                  return (
+                    <button
+                      key={sec.key}
+                      type="button"
+                      onClick={() => setProbActiveSection(sec.key)}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 ${
+                        isActive
+                          ? 'bg-[#0D684D] text-white shadow-xs'
+                          : 'bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-900 border border-slate-200/80'
+                      }`}
+                    >
+                      <Icon className="w-3.5 h-3.5" />
+                      <span>{sec.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+
               {probError && (
-                <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-semibold flex items-center gap-2">
+                <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-semibold flex items-center gap-2 shrink-0">
                   <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
                   <span>{probError}</span>
                 </div>
               )}
 
-              <form onSubmit={handleCreateProblem} className="space-y-4">
-                {/* Title & Difficulty */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  <div className="sm:col-span-2">
-                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
-                      Problem Title *
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      value={probTitle}
-                      onChange={(e) => setProbTitle(e.target.value)}
-                      placeholder="e.g. Invert Binary Tree"
-                      style={{ color: '#0f172a', backgroundColor: '#ffffff', opacity: 1 }}
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm font-semibold"
+              {/* Scrollable Form Content */}
+              <form onSubmit={handleCreateProblem} className="flex-1 overflow-y-auto pr-1 space-y-4">
+                {/* SECTION A: BASIC INFO */}
+                {probActiveSection === 'A' && (
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      <div className="sm:col-span-2">
+                        <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
+                          Problem Title *
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          value={probTitle}
+                          onChange={(e) => setProbTitle(e.target.value)}
+                          placeholder="e.g. Invert Binary Tree"
+                          style={{ color: '#0f172a', backgroundColor: '#ffffff', opacity: 1 }}
+                          className="w-full px-3.5 py-2.5 rounded-xl border-2 border-slate-300 bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm font-semibold"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
+                          Difficulty *
+                        </label>
+                        <div className="grid grid-cols-3 gap-1.5 h-[42px] items-center">
+                          {[
+                            { id: 'EASY', label: 'EASY', activeClass: 'bg-emerald-600 text-white border-emerald-600 font-extrabold shadow-sm' },
+                            { id: 'MEDIUM', label: 'MEDIUM', activeClass: 'bg-amber-500 text-white border-amber-500 font-extrabold shadow-sm' },
+                            { id: 'HARD', label: 'HARD', activeClass: 'bg-rose-600 text-white border-rose-600 font-extrabold shadow-sm' },
+                          ].map((d) => (
+                            <button
+                              key={d.id}
+                              type="button"
+                              onClick={() => setProbDifficulty(d.id)}
+                              className={`h-full px-2 rounded-xl border text-xs transition-all flex items-center justify-center ${
+                                probDifficulty === d.id
+                                  ? d.activeClass
+                                  : 'bg-white border-slate-300 text-slate-800 font-bold hover:bg-slate-50 hover:border-slate-400'
+                              }`}
+                            >
+                              {d.label}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Slug */}
+                    <div>
+                      <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
+                        URL Slug / Problem ID (Auto-Generated)
+                      </label>
+                      <input
+                        type="text"
+                        value={probSlug}
+                        onChange={(e) => {
+                          setProbSlug(e.target.value);
+                          setProbSlugCustomized(true);
+                        }}
+                        placeholder="e.g. invert-binary-tree"
+                        style={{ color: '#0f172a', backgroundColor: '#ffffff', opacity: 1 }}
+                        className="w-full px-3.5 py-2 rounded-xl border-2 border-slate-300 bg-white text-slate-900 placeholder:text-slate-400 font-mono text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                      />
+                    </div>
+
+                    {/* Topic */}
+                    <div>
+                      <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
+                        Topic / Category
+                      </label>
+                      <div className="flex flex-wrap gap-1.5 mb-2">
+                        {POPULAR_TOPICS.map((t) => (
+                          <button
+                            key={t}
+                            type="button"
+                            onClick={() => setProbTopic(t)}
+                            className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-all ${
+                              probTopic === t
+                                ? 'bg-[#0D684D] text-white shadow-xs'
+                                : 'bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200'
+                            }`}
+                          >
+                            {t}
+                          </button>
+                        ))}
+                      </div>
+                      <input
+                        type="text"
+                        value={probTopic}
+                        onChange={(e) => setProbTopic(e.target.value)}
+                        placeholder="Or enter custom topic"
+                        style={{ color: '#0f172a', backgroundColor: '#ffffff', opacity: 1 }}
+                        className="w-full px-3.5 py-2 rounded-xl border-2 border-slate-300 bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 text-xs font-medium"
+                      />
+                    </div>
+
+                    {/* Companies */}
+                    <div>
+                      <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
+                        Target Companies (Optional)
+                      </label>
+                      <input
+                        type="text"
+                        value={probCompanies}
+                        onChange={(e) => setProbCompanies(e.target.value)}
+                        placeholder="e.g. Google, Amazon, Meta, Microsoft (comma separated)"
+                        style={{ color: '#0f172a', backgroundColor: '#ffffff', opacity: 1 }}
+                        className="w-full px-3.5 py-2 rounded-xl border-2 border-slate-300 bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 text-xs font-medium"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* SECTION B: DESCRIPTION & EXAMPLES */}
+                {probActiveSection === 'B' && (
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
+                        Problem Statement *
+                      </label>
+                      <ProblemDescriptionEditor
+                        value={probDescription}
+                        onChange={setProbDescription}
+                        placeholder="Write the problem statement using Markdown or rich formatting..."
+                      />
+                    </div>
+
+                    {/* Dynamic Examples */}
+                    <div className="space-y-3 pt-2">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h4 className="text-xs font-bold uppercase tracking-wider text-slate-800">
+                            Examples ({probExamples.length})
+                          </h4>
+                          <p className="text-[11px] text-slate-500">Add dynamic input/output examples for contestant clarity</p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={handleAddExample}
+                          className="px-3 py-1.5 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold hover:bg-emerald-100 flex items-center gap-1 transition-colors"
+                        >
+                          <Plus className="w-3.5 h-3.5" />
+                          <span>Add Example</span>
+                        </button>
+                      </div>
+
+                      {probExamples.map((ex, idx) => (
+                        <div key={ex.id || idx} className="p-3.5 rounded-xl border-2 border-slate-300 bg-slate-50/70 space-y-2.5">
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs font-bold text-slate-800">Example {idx + 1}</span>
+                            {probExamples.length > 1 && (
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveExample(idx)}
+                                className="text-rose-600 hover:text-rose-800 p-1 text-xs font-semibold flex items-center gap-1"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                                <span>Remove</span>
+                              </button>
+                            )}
+                          </div>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                            <div>
+                              <label className="block text-[11px] font-bold text-slate-600 mb-0.5">Input</label>
+                              <input
+                                type="text"
+                                value={ex.input}
+                                onChange={(e) => handleExampleChange(idx, 'input', e.target.value)}
+                                placeholder="nums = [2,7,11,15], target = 9"
+                                style={{ color: '#0f172a', backgroundColor: '#ffffff', opacity: 1 }}
+                                className="w-full px-3 py-1.5 rounded-lg border border-slate-300 font-mono text-xs focus:ring-1 focus:ring-emerald-500"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-[11px] font-bold text-slate-600 mb-0.5">Output</label>
+                              <input
+                                type="text"
+                                value={ex.output}
+                                onChange={(e) => handleExampleChange(idx, 'output', e.target.value)}
+                                placeholder="[0,1]"
+                                style={{ color: '#0f172a', backgroundColor: '#ffffff', opacity: 1 }}
+                                className="w-full px-3 py-1.5 rounded-lg border border-slate-300 font-mono text-xs focus:ring-1 focus:ring-emerald-500"
+                              />
+                            </div>
+                          </div>
+                          <div>
+                            <label className="block text-[11px] font-bold text-slate-600 mb-0.5">Explanation (Optional)</label>
+                            <input
+                              type="text"
+                              value={ex.explanation}
+                              onChange={(e) => handleExampleChange(idx, 'explanation', e.target.value)}
+                              placeholder="Because nums[0] + nums[1] == 9, we return [0, 1]."
+                              style={{ color: '#0f172a', backgroundColor: '#ffffff', opacity: 1 }}
+                              className="w-full px-3 py-1.5 rounded-lg border border-slate-300 text-xs focus:ring-1 focus:ring-emerald-500"
+                            />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Constraints */}
+                    <div>
+                      <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
+                        Constraints (One per line)
+                      </label>
+                      <textarea
+                        rows={3}
+                        value={probConstraints}
+                        onChange={(e) => setProbConstraints(e.target.value)}
+                        placeholder="2 <= nums.length <= 10^4&#10;-10^9 <= nums[i] <= 10^9"
+                        style={{ color: '#0f172a', backgroundColor: '#ffffff', opacity: 1 }}
+                        className="w-full px-3 py-2 rounded-xl border-2 border-slate-300 font-mono text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                      />
+                    </div>
+
+                    {/* Follow-up */}
+                    <div>
+                      <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
+                        Follow-up Question (Optional)
+                      </label>
+                      <input
+                        type="text"
+                        value={probFollowUp}
+                        onChange={(e) => setProbFollowUp(e.target.value)}
+                        placeholder="e.g. Can you come up with an algorithm that is less than O(n^2) time complexity?"
+                        style={{ color: '#0f172a', backgroundColor: '#ffffff', opacity: 1 }}
+                        className="w-full px-3 py-2 rounded-xl border-2 border-slate-300 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* SECTION C: FUNCTION SIGNATURE */}
+                {probActiveSection === 'C' && (
+                  <div className="space-y-4">
+                    <FunctionSignatureConfig
+                      config={probFunctionConfig}
+                      onChange={setProbFunctionConfig}
+                      problemTitle={probTitle}
                     />
                   </div>
-                  <div>
-                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
-                      Difficulty *
-                    </label>
-                    <div className="grid grid-cols-3 gap-1.5 h-[42px] items-center">
-                      {[
-                        { id: 'EASY', label: 'EASY', activeClass: 'bg-emerald-600 text-white border-emerald-600 font-extrabold shadow-sm' },
-                        { id: 'MEDIUM', label: 'MEDIUM', activeClass: 'bg-amber-500 text-white border-amber-500 font-extrabold shadow-sm' },
-                        { id: 'HARD', label: 'HARD', activeClass: 'bg-rose-600 text-white border-rose-600 font-extrabold shadow-sm' },
-                      ].map((d) => (
+                )}
+
+                {/* SECTION D: TEST CASES */}
+                {probActiveSection === 'D' && (
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h4 className="text-xs font-bold uppercase tracking-wider text-slate-800">
+                          Judge Evaluation Test Cases ({probTestCases.length})
+                        </h4>
+                        <p className="text-[11px] text-slate-500">Provide sample and hidden judge test cases for automatic submission grading.</p>
+                      </div>
+                      <div className="flex items-center gap-2">
                         <button
-                          key={d.id}
                           type="button"
-                          onClick={() => setProbDifficulty(d.id)}
-                          className={`h-full px-2 rounded-xl border text-xs transition-all flex items-center justify-center ${
-                            probDifficulty === d.id
-                              ? d.activeClass
-                              : 'bg-white border-slate-300 text-slate-800 font-bold hover:bg-slate-50 hover:border-slate-400'
-                          }`}
+                          onClick={handleSyncExamplesToTestCases}
+                          className="px-3 py-1.5 rounded-lg bg-emerald-50 border border-emerald-300 text-emerald-800 text-xs font-bold hover:bg-emerald-100 flex items-center gap-1 transition-colors"
                         >
-                          {d.label}
+                          <Sparkles className="w-3.5 h-3.5" />
+                          <span>Sync from Examples</span>
                         </button>
+                        <button
+                          type="button"
+                          onClick={handleAddTestCase}
+                          className="px-3 py-1.5 rounded-lg bg-[#0D684D] text-white text-xs font-bold hover:bg-[#0A543E] flex items-center gap-1 transition-colors"
+                        >
+                          <Plus className="w-3.5 h-3.5" />
+                          <span>Add Test Case</span>
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="space-y-3">
+                      {probTestCases.map((tc, idx) => (
+                        <div key={idx} className="p-3.5 rounded-xl border-2 border-slate-300 bg-white space-y-2.5">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs font-bold text-slate-800">Test Case #{idx + 1}</span>
+                              <label className="flex items-center gap-1.5 text-xs text-slate-600 font-semibold cursor-pointer">
+                                <input
+                                  type="checkbox"
+                                  checked={tc.isHidden}
+                                  onChange={(e) => handleTestCaseChange(idx, 'isHidden', e.target.checked)}
+                                  className="w-3.5 h-3.5 rounded text-emerald-600 focus:ring-emerald-500 cursor-pointer"
+                                />
+                                <span>Hidden Test Case</span>
+                              </label>
+                            </div>
+                            {probTestCases.length > 1 && (
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveTestCase(idx)}
+                                className="text-rose-600 hover:text-rose-800 p-1 text-xs font-semibold flex items-center gap-1"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                                <span>Remove</span>
+                              </button>
+                            )}
+                          </div>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                            <div>
+                              <label className="block text-[11px] font-bold text-slate-600 mb-0.5">Input Data</label>
+                              <textarea
+                                rows={2}
+                                value={tc.inputData}
+                                onChange={(e) => handleTestCaseChange(idx, 'inputData', e.target.value)}
+                                placeholder="[2,7,11,15]&#10;9"
+                                style={{ color: '#0f172a', backgroundColor: '#ffffff', opacity: 1 }}
+                                className="w-full px-3 py-1.5 rounded-lg border border-slate-300 font-mono text-xs focus:ring-1 focus:ring-emerald-500"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-[11px] font-bold text-slate-600 mb-0.5">Expected Output</label>
+                              <textarea
+                                rows={2}
+                                value={tc.expectedOutput}
+                                onChange={(e) => handleTestCaseChange(idx, 'expectedOutput', e.target.value)}
+                                placeholder="[0,1]"
+                                style={{ color: '#0f172a', backgroundColor: '#ffffff', opacity: 1 }}
+                                className="w-full px-3 py-1.5 rounded-lg border border-slate-300 font-mono text-xs focus:ring-1 focus:ring-emerald-500"
+                              />
+                            </div>
+                          </div>
+                        </div>
                       ))}
                     </div>
                   </div>
-                </div>
+                )}
 
-                {/* Topic Selector */}
-                <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
-                    Topic / Category
-                  </label>
-                  <div className="flex flex-wrap gap-1.5 mb-2">
-                    {POPULAR_TOPICS.map((t) => (
+                {/* SECTION E: HINTS & EDITORIAL */}
+                {probActiveSection === 'E' && (
+                  <div className="space-y-4">
+                    {/* Hints */}
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
+                          Hints ({probHints.length})
+                        </label>
+                        <button
+                          type="button"
+                          onClick={handleAddHint}
+                          className="px-3 py-1.5 rounded-lg bg-amber-50 border border-amber-300 text-amber-900 text-xs font-bold hover:bg-amber-100 flex items-center gap-1 transition-colors"
+                        >
+                          <Plus className="w-3.5 h-3.5" />
+                          <span>Add Hint</span>
+                        </button>
+                      </div>
+                      {probHints.map((hint, idx) => (
+                        <div key={idx} className="flex items-start gap-2">
+                          <span className="w-6 h-8 rounded-lg bg-slate-100 text-slate-600 text-xs font-bold flex items-center justify-center shrink-0">
+                            {idx + 1}
+                          </span>
+                          <input
+                            type="text"
+                            value={hint}
+                            onChange={(e) => handleHintChange(idx, e.target.value)}
+                            placeholder={`Hint #${idx + 1}`}
+                            style={{ color: '#0f172a', backgroundColor: '#ffffff', opacity: 1 }}
+                            className="flex-1 px-3 py-1.5 rounded-lg border-2 border-slate-300 text-xs focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                          />
+                          {probHints.length > 1 && (
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveHint(idx)}
+                              className="p-2 text-rose-500 hover:text-rose-700"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Complexity & Approach */}
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
+                      <div>
+                        <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
+                          Solution Approach
+                        </label>
+                        <input
+                          type="text"
+                          value={probSolutionApproach}
+                          onChange={(e) => setProbSolutionApproach(e.target.value)}
+                          placeholder="e.g. One-pass Hash Table"
+                          style={{ color: '#0f172a', backgroundColor: '#ffffff', opacity: 1 }}
+                          className="w-full px-3 py-2 rounded-xl border-2 border-slate-300 text-xs focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
+                          Time Complexity
+                        </label>
+                        <input
+                          type="text"
+                          value={probTimeComplexity}
+                          onChange={(e) => setProbTimeComplexity(e.target.value)}
+                          placeholder="e.g. O(n)"
+                          style={{ color: '#0f172a', backgroundColor: '#ffffff', opacity: 1 }}
+                          className="w-full px-3 py-2 rounded-xl border-2 border-slate-300 font-mono text-xs focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
+                          Space Complexity
+                        </label>
+                        <input
+                          type="text"
+                          value={probSpaceComplexity}
+                          onChange={(e) => setProbSpaceComplexity(e.target.value)}
+                          placeholder="e.g. O(n)"
+                          style={{ color: '#0f172a', backgroundColor: '#ffffff', opacity: 1 }}
+                          className="w-full px-3 py-2 rounded-xl border-2 border-slate-300 font-mono text-xs focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Editorial */}
+                    <div>
+                      <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
+                        Detailed Editorial & Intuition Walkthrough
+                      </label>
+                      <textarea
+                        rows={4}
+                        value={probEditorial}
+                        onChange={(e) => setProbEditorial(e.target.value)}
+                        placeholder="Explain the intuition, algorithm breakdown, edge case handling, and step-by-step reasoning..."
+                        style={{ color: '#0f172a', backgroundColor: '#ffffff', opacity: 1 }}
+                        className="w-full px-3.5 py-2.5 rounded-xl border-2 border-slate-300 text-xs leading-relaxed focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* SECTION F: OFFICIAL SOLUTION */}
+                {probActiveSection === 'F' && (
+                  <div className="space-y-4">
+                    <div className="p-3 rounded-xl bg-emerald-50/70 border border-emerald-200 text-emerald-950 text-xs">
+                      <p className="font-semibold">Working reference solution uploaded by Admin for each language (distinct from auto-generated starter code).</p>
+                      <p className="text-[11px] text-emerald-800 mt-0.5">Function signatures from Section C are automatically loaded below ready for implementation.</p>
+                    </div>
+
+                    {/* Language Tabs */}
+                    <div className="flex items-center gap-1.5 border-b border-slate-200 pb-2">
+                      {['JAVA', 'CPP', 'C', 'PYTHON', 'JAVASCRIPT'].map((lang) => (
+                        <button
+                          key={lang}
+                          type="button"
+                          onClick={() => setProbSolutionTab(lang)}
+                          className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                            probSolutionTab === lang
+                              ? 'bg-[#0D684D] text-white shadow-xs'
+                              : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+                          }`}
+                        >
+                          {lang === 'CPP' ? 'C++' : lang === 'JAVASCRIPT' ? 'JavaScript' : lang.charAt(0) + lang.slice(1).toLowerCase()}
+                        </button>
+                      ))}
+                    </div>
+
+                    <div>
+                      <textarea
+                        rows={9}
+                        value={probOfficialSolutions[probSolutionTab] || ''}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setProbOfficialSolutions(prev => ({ ...prev, [probSolutionTab]: val }));
+                          setProbManualSolutionEdit(prev => ({ ...prev, [probSolutionTab]: true }));
+                        }}
+                        placeholder={`// Enter official working ${probSolutionTab} solution code here...`}
+                        style={{ color: '#0f172a', backgroundColor: '#ffffff', opacity: 1 }}
+                        className="w-full p-4 rounded-xl border-2 border-slate-300 font-mono text-xs leading-relaxed focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* Section Navigation Footer & Submit */}
+                <div className="flex items-center justify-between pt-3 border-t border-slate-200 shrink-0">
+                  <div className="flex items-center gap-2">
+                    {probActiveSection !== 'A' && (
                       <button
-                        key={t}
                         type="button"
-                        onClick={() => setProbTopic(t)}
-                        className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-all ${
-                          probTopic === t
-                            ? 'bg-[#0D684D] text-white shadow-xs'
-                            : 'bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200'
-                        }`}
+                        onClick={() => {
+                          const keys = ['A', 'B', 'C', 'D', 'E', 'F'];
+                          const curIdx = keys.indexOf(probActiveSection);
+                          if (curIdx > 0) setProbActiveSection(keys[curIdx - 1]);
+                        }}
+                        className="px-3 py-1.5 rounded-xl border border-slate-300 text-slate-700 hover:bg-slate-50 text-xs font-semibold"
                       >
-                        {t}
+                        ← Previous Section
                       </button>
-                    ))}
+                    )}
+                    {probActiveSection !== 'F' && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const keys = ['A', 'B', 'C', 'D', 'E', 'F'];
+                          const curIdx = keys.indexOf(probActiveSection);
+                          if (curIdx < keys.length - 1) setProbActiveSection(keys[curIdx + 1]);
+                        }}
+                        className="px-3 py-1.5 rounded-xl border border-slate-300 text-slate-700 hover:bg-slate-50 text-xs font-semibold"
+                      >
+                        Next Section →
+                      </button>
+                    )}
                   </div>
-                  <input
-                    type="text"
-                    value={probTopic}
-                    onChange={(e) => setProbTopic(e.target.value)}
-                    placeholder="Or enter custom topic"
-                    style={{ color: '#0f172a', backgroundColor: '#ffffff', opacity: 1 }}
-                    className="w-full px-3.5 py-2 rounded-lg border border-slate-300 bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 text-xs font-medium"
-                  />
-                </div>
 
-                {/* Description */}
-                <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
-                    Problem Description *
-                  </label>
-                  <textarea
-                    rows={4}
-                    required
-                    value={probDescription}
-                    onChange={(e) => setProbDescription(e.target.value)}
-                    placeholder="Explain the problem statement, inputs, and expected task clearly..."
-                    style={{ color: '#0f172a', backgroundColor: '#ffffff', opacity: 1 }}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm leading-relaxed font-normal"
-                  />
-                </div>
-
-                {/* Problem Constraints */}
-                <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
-                    Constraints
-                  </label>
-                  <input
-                    type="text"
-                    value={probConstraints}
-                    onChange={(e) => setProbConstraints(e.target.value)}
-                    placeholder="e.g. 1 <= nums.length <= 10^5, -10^4 <= nums[i] <= 10^4"
-                    style={{ color: '#0f172a', backgroundColor: '#ffffff', opacity: 1 }}
-                    className="w-full px-3.5 py-2 rounded-xl border border-slate-300 bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-mono text-xs"
-                  />
-                </div>
-
-                {/* Sample Input / Output */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
-                      Sample / Test Input
-                    </label>
-                    <textarea
-                      rows={2}
-                      value={probSampleInput}
-                      onChange={(e) => setProbSampleInput(e.target.value)}
-                      placeholder="e.g. [2,7,11,15], target = 9"
-                      style={{ color: '#0f172a', backgroundColor: '#ffffff', opacity: 1 }}
-                      className="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-mono text-xs"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
-                      Sample / Expected Output
-                    </label>
-                    <textarea
-                      rows={2}
-                      value={probSampleOutput}
-                      onChange={(e) => setProbSampleOutput(e.target.value)}
-                      placeholder="e.g. [0,1]"
-                      style={{ color: '#0f172a', backgroundColor: '#ffffff', opacity: 1 }}
-                      className="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-mono text-xs"
-                    />
-                  </div>
-                </div>
-
-                {/* Starter Code (Optional) */}
-                <div>
-                  <div className="flex items-center justify-between mb-1">
-                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
-                      Starter Code Template (Optional)
-                    </label>
+                  <div className="flex items-center gap-2">
                     <button
                       type="button"
-                      onClick={() => {
-                        const rawTitle = probTitle || 'twoSum';
-                        const fnName = rawTitle.replace(/[^a-zA-Z0-9]/g, ' ').trim().split(/\s+/).map((w, i) => i === 0 ? w.toLowerCase() : w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join('') || 'solve';
-                        const allLangs = generateAllTemplates({
-                          functionName: fnName,
-                          returnType: 'int',
-                          parameters: [
-                            { name: 'nums', type: 'int[]' },
-                            { name: 'target', type: 'int' }
-                          ]
-                        });
-                        setProbStarterCode(JSON.stringify(allLangs, null, 2));
-                      }}
-                      className="text-[11px] font-bold text-emerald-700 hover:text-emerald-900 flex items-center gap-1 hover:underline cursor-pointer"
+                      onClick={() => setShowProblemModal(false)}
+                      className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 transition-colors"
                     >
-                      ⚡ Auto-Generate 5-Language Signatures
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={probSubmitting}
+                      className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#0D684D] hover:bg-[#0A543E] disabled:opacity-60 text-white font-semibold text-xs sm:text-sm shadow-md transition-all hover:scale-105"
+                    >
+                      {probSubmitting ? (
+                        <span>Saving Problem...</span>
+                      ) : (
+                        <>
+                          <Plus className="w-4 h-4" />
+                          <span>Save & Add to Contest</span>
+                        </>
+                      )}
                     </button>
                   </div>
-                  <textarea
-                    rows={4}
-                    value={probStarterCode}
-                    onChange={(e) => setProbStarterCode(e.target.value)}
-                    placeholder="Enter starter code or click 'Auto-Generate 5-Language Signatures'"
-                    style={{ color: '#10b981', backgroundColor: '#0f172a', opacity: 1 }}
-                    className="w-full px-3 py-2 rounded-xl border border-slate-300 bg-slate-900 text-emerald-400 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-mono text-xs"
-                  />
-                  <p className="text-[10px] text-slate-500 mt-1">
-                    Tip: Generates automatic templates for Java, C++, C, Python, and JavaScript standard specifications.
-                  </p>
-                </div>
-
-                {/* Actions */}
-                <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
-                  <button
-                    type="button"
-                    onClick={() => setShowProblemModal(false)}
-                    className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 transition-colors"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={probSubmitting}
-                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#0D684D] hover:bg-[#0A543E] disabled:opacity-60 text-white font-semibold text-xs sm:text-sm shadow-md transition-all hover:scale-105"
-                  >
-                    {probSubmitting ? (
-                      <span>Saving Problem...</span>
-                    ) : (
-                      <>
-                        <Plus className="w-4 h-4" />
-                        <span>Save & Add to Problem List</span>
-                      </>
-                    )}
-                  </button>
                 </div>
               </form>
             </div>

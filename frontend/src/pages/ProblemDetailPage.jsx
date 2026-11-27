@@ -68,6 +68,7 @@ export const ProblemDetailPage = () => {
   const location = useLocation();
   const { isAuthenticated, user, isAdmin } = useAuth();
   const contestId = new URLSearchParams(location.search).get('contestId');
+  const isContestantInContest = Boolean(contestId) && !isAdmin;
   const [contest, setContest] = useState(null);
 
   // Problem data
@@ -600,27 +601,59 @@ export const ProblemDetailPage = () => {
                 </button>
 
                 <button
-                  onClick={() => setLeftTab('solutions')}
+                  disabled={isContestantInContest}
+                  onClick={() => {
+                    if (isContestantInContest) return;
+                    setLeftTab('solutions');
+                  }}
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
-                    leftTab === 'solutions' 
-                      ? isDark ? 'bg-[#333333] text-white shadow-xs' : 'bg-white text-slate-900 font-bold shadow-xs border border-[#E2E8F0]'
-                      : `${textMuted} hover:${textHead}`
+                    isContestantInContest
+                      ? 'opacity-60 cursor-not-allowed text-slate-400'
+                      : leftTab === 'solutions' 
+                        ? isDark ? 'bg-[#333333] text-white shadow-xs' : 'bg-white text-slate-900 font-bold shadow-xs border border-[#E2E8F0]'
+                        : `${textMuted} hover:${textHead}`
                   }`}
+                  title={isContestantInContest ? 'Solutions are locked during contest' : 'View solutions'}
                 >
-                  <Code2 className="w-3.5 h-3.5 text-cyan-400" />
+                  {isContestantInContest ? (
+                    <Lock className="w-3.5 h-3.5 text-amber-500" />
+                  ) : (
+                    <Code2 className="w-3.5 h-3.5 text-cyan-400" />
+                  )}
                   <span>Solutions</span>
+                  {isContestantInContest && (
+                    <span className="text-[10px] px-1 py-0.5 rounded bg-amber-100 text-amber-800 font-bold border border-amber-200">
+                      Locked
+                    </span>
+                  )}
                 </button>
 
                 <button
-                  onClick={() => setLeftTab('editorial')}
+                  disabled={isContestantInContest}
+                  onClick={() => {
+                    if (isContestantInContest) return;
+                    setLeftTab('editorial');
+                  }}
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
-                    leftTab === 'editorial' 
-                      ? isDark ? 'bg-[#333333] text-white shadow-xs' : 'bg-white text-slate-900 font-bold shadow-xs border border-[#E2E8F0]'
-                      : `${textMuted} hover:${textHead}`
+                    isContestantInContest
+                      ? 'opacity-60 cursor-not-allowed text-slate-400'
+                      : leftTab === 'editorial' 
+                        ? isDark ? 'bg-[#333333] text-white shadow-xs' : 'bg-white text-slate-900 font-bold shadow-xs border border-[#E2E8F0]'
+                        : `${textMuted} hover:${textHead}`
                   }`}
+                  title={isContestantInContest ? 'Editorial is locked during contest' : 'View editorial'}
                 >
-                  <BookOpen className="w-3.5 h-3.5 text-amber-400" />
+                  {isContestantInContest ? (
+                    <Lock className="w-3.5 h-3.5 text-amber-500" />
+                  ) : (
+                    <BookOpen className="w-3.5 h-3.5 text-amber-400" />
+                  )}
                   <span>Editorial</span>
+                  {isContestantInContest && (
+                    <span className="text-[10px] px-1 py-0.5 rounded bg-amber-100 text-amber-800 font-bold border border-amber-200">
+                      Locked
+                    </span>
+                  )}
                 </button>
 
                 <button
@@ -816,68 +849,104 @@ export const ProblemDetailPage = () => {
               </>
             ) : leftTab === 'solutions' ? (
               /* Solutions Tab */
-              <div className="space-y-4">
-                <h3 className={`text-lg font-bold ${textHead}`}>Optimal Approaches & Reference Solutions</h3>
-                
-                {/* Admin-defined Solution Code & Approach */}
-                {(problem.solutionCode || problem.solutionApproach) && (
-                  <div className={`p-4 rounded-xl border ${borderCol} ${bgSubPane} space-y-3`}>
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold text-emerald-500 uppercase tracking-wider">
-                        {problem.solutionApproach || 'Optimal Solution'}
-                      </span>
-                      {problem.solutionCode && (
-                        <button
-                          onClick={() => {
-                            navigator.clipboard.writeText(problem.solutionCode);
-                            setCopiedSolutionCode(true);
-                            setTimeout(() => setCopiedSolutionCode(false), 2000);
-                          }}
-                          className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-emerald-500 font-mono transition-colors"
-                        >
-                          {copiedSolutionCode ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
-                          <span>{copiedSolutionCode ? 'Copied' : 'Copy Code'}</span>
-                        </button>
-                      )}
-                    </div>
-                    {problem.solutionCode && (
-                      <pre className={`p-4 rounded-xl border ${borderCol} font-mono text-xs overflow-x-auto leading-relaxed ${isDark ? 'bg-[#181818] text-emerald-300' : 'bg-slate-900 text-emerald-300'}`}>
-                        {problem.solutionCode}
-                      </pre>
-                    )}
+              isContestantInContest ? (
+                <div className="py-16 text-center space-y-4 max-w-md mx-auto">
+                  <div className="w-16 h-16 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-500 flex items-center justify-center mx-auto shadow-inner">
+                    <Lock className="w-8 h-8" />
                   </div>
-                )}
-
-                {/* Additional Catalog Solutions */}
-                {(meta?.solutions || (!problem.solutionCode && !problem.solutionApproach ? [
-                  {
-                    title: 'Optimal Approach',
-                    timeComplexity: 'O(n)',
-                    spaceComplexity: 'O(1)',
-                    description: 'Direct optimal solution evaluating state linearly.'
-                  }
-                ] : [])).map((sol, idx) => (
-                  <div key={idx} className={`p-4 rounded-xl border ${borderCol} ${bgSubPane} space-y-2`}>
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold text-emerald-500 uppercase tracking-wider">{sol.title}</span>
-                      <span className="text-[11px] font-mono text-emerald-400">Time: {sol.timeComplexity} | Space: {sol.spaceComplexity}</span>
-                    </div>
-                    <p className={`text-xs leading-relaxed ${textMuted}`}>
-                      {sol.description}
+                  <div>
+                    <h3 className={`text-base font-bold ${textHead}`}>Solutions Locked During Contest</h3>
+                    <p className={`text-xs ${textMuted} mt-1.5 leading-relaxed`}>
+                      Official reference solutions and peer implementations are strictly locked during active contest participation to ensure competitive integrity. Reference solutions will become available once the contest concludes.
                     </p>
                   </div>
-                ))}
-              </div>
+                  <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-800/60 border border-slate-700/60 text-slate-300 text-xs font-mono">
+                    <Shield className="w-3.5 h-3.5 text-amber-400" />
+                    <span>Contest Arena Mode Active</span>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <h3 className={`text-lg font-bold ${textHead}`}>Optimal Approaches & Reference Solutions</h3>
+                  
+                  {/* Admin-defined Solution Code & Approach */}
+                  {(problem.solutionCode || problem.solutionApproach) && (
+                    <div className={`p-4 rounded-xl border ${borderCol} ${bgSubPane} space-y-3`}>
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold text-emerald-500 uppercase tracking-wider">
+                          {problem.solutionApproach || 'Optimal Solution'}
+                        </span>
+                        {problem.solutionCode && (
+                          <button
+                            onClick={() => {
+                              navigator.clipboard.writeText(problem.solutionCode);
+                              setCopiedSolutionCode(true);
+                              setTimeout(() => setCopiedSolutionCode(false), 2000);
+                            }}
+                            className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-emerald-500 font-mono transition-colors"
+                          >
+                            {copiedSolutionCode ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
+                            <span>{copiedSolutionCode ? 'Copied' : 'Copy Code'}</span>
+                          </button>
+                        )}
+                      </div>
+                      {problem.solutionCode && (
+                        <pre className={`p-4 rounded-xl border ${borderCol} font-mono text-xs overflow-x-auto leading-relaxed ${isDark ? 'bg-[#181818] text-emerald-300' : 'bg-slate-900 text-emerald-300'}`}>
+                          {problem.solutionCode}
+                        </pre>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Additional Catalog Solutions */}
+                  {(meta?.solutions || (!problem.solutionCode && !problem.solutionApproach ? [
+                    {
+                      title: 'Optimal Approach',
+                      timeComplexity: 'O(n)',
+                      spaceComplexity: 'O(1)',
+                      description: 'Direct optimal solution evaluating state linearly.'
+                    }
+                  ] : [])).map((sol, idx) => (
+                    <div key={idx} className={`p-4 rounded-xl border ${borderCol} ${bgSubPane} space-y-2`}>
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold text-emerald-500 uppercase tracking-wider">{sol.title}</span>
+                        <span className="text-[11px] font-mono text-emerald-400">Time: {sol.timeComplexity} | Space: {sol.spaceComplexity}</span>
+                      </div>
+                      <p className={`text-xs leading-relaxed ${textMuted}`}>
+                        {sol.description}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              )
             ) : leftTab === 'editorial' ? (
               /* Editorial Tab */
-              <div className="space-y-4">
-                <h3 className={`text-lg font-bold ${textHead}`}>Editorial & Intuition</h3>
-                <div className={`p-4 rounded-xl border ${borderCol} ${bgSubPane} text-xs leading-relaxed space-y-3 ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
-                  <p className="whitespace-pre-line">
-                    {problem.editorial || meta?.editorial || 'Comprehensive intuition and theoretical walkthrough for this challenge.'}
-                  </p>
+              isContestantInContest ? (
+                <div className="py-16 text-center space-y-4 max-w-md mx-auto">
+                  <div className="w-16 h-16 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-500 flex items-center justify-center mx-auto shadow-inner">
+                    <Lock className="w-8 h-8" />
+                  </div>
+                  <div>
+                    <h3 className={`text-base font-bold ${textHead}`}>Editorial Locked During Contest</h3>
+                    <p className={`text-xs ${textMuted} mt-1.5 leading-relaxed`}>
+                      The problem editorial, algorithmic walkthrough, and hints are locked during active contest participation. Formulate your algorithm independently to maximize your contest score!
+                    </p>
+                  </div>
+                  <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-800/60 border border-slate-700/60 text-slate-300 text-xs font-mono">
+                    <Shield className="w-3.5 h-3.5 text-amber-400" />
+                    <span>Contest Arena Mode Active</span>
+                  </div>
                 </div>
-              </div>
+              ) : (
+                <div className="space-y-4">
+                  <h3 className={`text-lg font-bold ${textHead}`}>Editorial & Intuition</h3>
+                  <div className={`p-4 rounded-xl border ${borderCol} ${bgSubPane} text-xs leading-relaxed space-y-3 ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
+                    <p className="whitespace-pre-line">
+                      {problem.editorial || meta?.editorial || 'Comprehensive intuition and theoretical walkthrough for this challenge.'}
+                    </p>
+                  </div>
+                </div>
+              )
             ) : (
               /* Submissions Tab */
               <div className="space-y-3">
