@@ -361,6 +361,97 @@ export const AdminContestsPage = () => {
     }
   };
 
+  useEffect(() => {
+    fetchInitialData();
+    const timer = setInterval(() => setCurrentTime(Date.now()), 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const fetchInitialData = async () => {
+    try {
+      setLoading(true);
+      const [contestRes, probRes] = await Promise.all([
+        contestApi.getAllContests(),
+        problemApi.getProblems()
+      ]);
+      setContests(contestRes.data || []);
+      const problemsList = probRes.data || [];
+      setAllProblems(problemsList);
+
+      // Pre-select first 5 problems by default if none selected yet
+      setSelectedProblemIds((prev) => {
+        if (prev.length > 0) return prev;
+        return problemsList.slice(0, 5).map(p => p.id);
+      });
+    } catch (err) {
+      console.error('Failed to load admin contest data', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCreateContest = async (e) => {
+    if (e && e.preventDefault) e.preventDefault();
+    setActionError('');
+    setActionSuccess('');
+
+    if (selectedProblemIds.length === 0) {
+      setActionError('Please select at least 1 problem for the contest.');
+      return;
+    }
+
+    try {
+      // Send local formatted ISO datetime (YYYY-MM-DDTHH:mm:ss) without UTC distortion so contest starts at exact scheduled local time
+      const formattedStartTime = startTime.length === 16 ? `${startTime}:00` : startTime;
+
+      await contestApi.createContest({
+        title,
+        description,
+        startTime: formattedStartTime,
+        durationMinutes: parseInt(durationMinutes) || 120,
+        problemIds: selectedProblemIds
+      });
+
+      setActionSuccess(`Contest "${title}" created successfully with ${selectedProblemIds.length} problems!`);
+      setShowModal(false);
+      setTitle('');
+      setDescription('');
+      fetchInitialData();
+    } catch (err) {
+      console.error(err);
+      setActionError(err.response?.data?.message || 'Failed to create contest.');
+    }
+  };
+
+  const handlePublish = async (contestId) => {
+    try {
+      await contestApi.publishContest(contestId);
+      setActionSuccess('Contest published and opened for contestants!');
+      fetchInitialData();
+    } catch (err) {
+      console.error(err);
+      setActionError('Failed to publish contest.');
+    }
+  };
+
+  const toggleProblemSelection = (id) => {
+    setActionError('');
+    if (selectedProblemIds.includes(id)) {
+      setSelectedProblemIds(selectedProblemIds.filter(pid => pid !== id));
+    } else {
+      setSelectedProblemIds([...selectedProblemIds, id]);
+    }
+  };
+
+  const selectFirst5 = () => {
+    setActionError('');
+    setSelectedProblemIds(allProblems.slice(0, 5).map(p => p.id));
+  };
+
+  const clearAllProblems = () => {
+    setSelectedProblemIds([]);
+  };
+
   return (
     <AppLayout title="Manage Contests">
       <div className="max-w-6xl mx-auto space-y-6 pb-16">
