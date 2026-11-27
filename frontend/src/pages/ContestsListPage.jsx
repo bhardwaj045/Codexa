@@ -26,6 +26,7 @@ export const ContestsListPage = () => {
   const [filterTab, setFilterTab] = useState('ALL'); // ALL, LIVE, UPCOMING, COMPLETED
   const [registeringId, setRegisteringId] = useState(null);
   const [actionMessage, setActionMessage] = useState('');
+  const [currentTime, setCurrentTime] = useState(Date.now());
   const { user, isAdmin } = useAuth();
   const navigate = useNavigate();
 
@@ -33,6 +34,8 @@ export const ContestsListPage = () => {
 
   useEffect(() => {
     fetchContests();
+    const timer = setInterval(() => setCurrentTime(Date.now()), 1000);
+    return () => clearInterval(timer);
   }, []);
 
   const fetchContests = async () => {
@@ -70,14 +73,14 @@ export const ContestsListPage = () => {
   };
 
   const getContestTimingState = (contest) => {
-    const now = Date.now();
+    const now = currentTime;
     const startMs = contest?.startTime ? Date.parse(contest.startTime) : 0;
     const endMs = contest?.endTime ? Date.parse(contest.endTime) : 0;
     
-    // Strict timing: if scheduled start time is in future, it is strictly UPCOMING (Waiting Room)
-    const isUpcoming = contest?.status === 'PUBLISHED' || (startMs > 0 && now < startMs);
+    // Strict timing: contest starts automatically when scheduled time arrives
     const isFinished = contest?.status === 'COMPLETED' || (endMs > 0 && now >= endMs);
-    const isLive = !isUpcoming && !isFinished && contest?.status === 'LIVE';
+    const isUpcoming = !isFinished && startMs > 0 && now < startMs;
+    const isLive = !isFinished && !isUpcoming && (contest?.status === 'LIVE' || (startMs > 0 && now >= startMs && contest?.status !== 'DRAFT'));
 
     return { isUpcoming, isLive, isFinished };
   };
@@ -124,7 +127,7 @@ export const ContestsListPage = () => {
   };
 
   const formatCountdown = (targetDate) => {
-    const total = Date.parse(targetDate) - Date.now();
+    const total = Date.parse(targetDate) - currentTime;
     if (total <= 0) return '00:00:00';
     const seconds = Math.floor((total / 1000) % 60);
     const minutes = Math.floor((total / 1000 / 60) % 60);

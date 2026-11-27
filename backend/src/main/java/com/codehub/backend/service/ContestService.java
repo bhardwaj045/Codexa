@@ -6,6 +6,7 @@ import com.codehub.backend.model.*;
 import com.codehub.backend.repository.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,6 +35,17 @@ public class ContestService {
 
         LocalDateTime startTime = req.getStartTime() != null ? req.getStartTime() : LocalDateTime.now();
         LocalDateTime endTime = startTime.plusMinutes(duration);
+        LocalDateTime now = LocalDateTime.now();
+
+        // Automatically configure initial status so contest starts on its own at scheduled startTime
+        ContestStatus initialStatus;
+        if (now.isBefore(startTime)) {
+            initialStatus = ContestStatus.PUBLISHED; // Scheduled & ready, auto-starts when startTime arrives
+        } else if (now.isAfter(endTime)) {
+            initialStatus = ContestStatus.COMPLETED;
+        } else {
+            initialStatus = ContestStatus.LIVE; // Auto-started live immediately if startTime is current
+        }
 
         Contest contest = Contest.builder()
                 .title(req.getTitle())
@@ -41,7 +53,7 @@ public class ContestService {
                 .startTime(startTime)
                 .endTime(endTime)
                 .durationMinutes(duration)
-                .status(ContestStatus.DRAFT)
+                .status(initialStatus)
                 .createdBy(admin)
                 .build();
 
@@ -351,6 +363,33 @@ public class ContestService {
         for (ContestParticipant cp : list) {
             cp.setRankPosition(pos++);
             contestParticipantRepository.save(cp);
+        }
+    }
+
+    /**
+     * Automatic background scheduler: Runs every 5 seconds to automatically transition contests
+     * from PUBLISHED -> LIVE when scheduled startTime arrives, and LIVE -> COMPLETED when endTime arrives.
+     * No administrator manual action is required.
+     */
+    @Scheduled(fixedRate = 5000)
+    @Transactional
+    public void autoTransitionContestStatuses() {
+        List<Contest> all = contestRepository.findAll();
+        LocalDateTime now = LocalDateTime.now();
+        for (Contest c : all) {
+            if (c.getStatus() != ContestStatus.DRAFT) {
+                if (now.isBefore(c.getStartTime()) && c.getStatus() != ContestStatus.PUBLISHED) {
+                    c.setStatus(ContestStatus.PUBLISHED);
+                    contestRepository.save(c);
+                } else if (now.isAfter(c.getEndTime()) && c.getStatus() != ContestStatus.COMPLETED) {
+                    c.setStatus(ContestStatus.COMPLETED);
+                    contestRepository.save(c);
+                } else if (!now.isBefore(c.getStartTime()) && !now.isAfter(c.getEndTime()) && c.getStatus() != ContestStatus.LIVE) {
+                    c.setStatus(ContestStatus.LIVE);
+                    contestRepository.save(c);
+                    log.info("Contest '{}' (ID: {}) automatically transitioned to LIVE at scheduled time {}", c.getTitle(), c.getId(), c.getStartTime());
+                }
+            }
         }
     }
 

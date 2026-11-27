@@ -42,6 +42,7 @@ export const ContestArenaPage = () => {
   const [timeLeft, setTimeLeft] = useState({ hours: 0, minutes: 0, seconds: 0, isFinished: false });
   const [startCountdown, setStartCountdown] = useState({ hours: 0, minutes: 0, seconds: 0, started: false });
   const [previewProblem, setPreviewProblem] = useState(null);
+  const [currentTime, setCurrentTime] = useState(Date.now());
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const { user, isAdmin } = useAuth();
@@ -57,6 +58,7 @@ export const ContestArenaPage = () => {
 
     const updateTimers = () => {
       const now = Date.now();
+      setCurrentTime(now);
       const startMs = Date.parse(contest.startTime);
       const endMs = Date.parse(contest.endTime);
 
@@ -156,12 +158,12 @@ export const ContestArenaPage = () => {
     );
   }
 
-  const now = Date.now();
+  const now = currentTime;
   const startMs = contest?.startTime ? Date.parse(contest.startTime) : 0;
   const endMs = contest?.endTime ? Date.parse(contest.endTime) : 0;
-  const isUpcoming = contest?.status === 'PUBLISHED' || (startMs > 0 && now < startMs);
   const isFinished = contest?.status === 'COMPLETED' || (endMs > 0 && now >= endMs);
-  const isLive = !isUpcoming && !isFinished && contest?.status === 'LIVE';
+  const isUpcoming = !isFinished && startMs > 0 && now < startMs;
+  const isLive = !isFinished && !isUpcoming && (contest?.status === 'LIVE' || (startMs > 0 && now >= startMs && contest?.status !== 'DRAFT'));
 
   return (
     <AppLayout title={contest.title}>

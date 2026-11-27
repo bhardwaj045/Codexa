@@ -19,8 +19,7 @@ import {
   FileCode,
   Layers,
   Flame,
-  ArrowRight,
-  Play
+  ArrowRight
 } from 'lucide-react';
 
 export const AdminContestsPage = () => {
@@ -44,9 +43,12 @@ export const AdminContestsPage = () => {
   });
   const [durationMinutes, setDurationMinutes] = useState(120); // 2 Hours
   const [selectedProblemIds, setSelectedProblemIds] = useState([]);
+  const [currentTime, setCurrentTime] = useState(Date.now());
 
   useEffect(() => {
     fetchInitialData();
+    const timer = setInterval(() => setCurrentTime(Date.now()), 1000);
+    return () => clearInterval(timer);
   }, []);
 
   const fetchInitialData = async () => {
@@ -103,19 +105,6 @@ export const AdminContestsPage = () => {
     } catch (err) {
       console.error(err);
       setActionError(err.response?.data?.message || 'Failed to create contest.');
-    }
-  };
-
-  const handleStartNow = async (contestId) => {
-    if (window.confirm('Do you want to start this contest immediately now? Contestants will be able to enter the live arena and solve challenges.')) {
-      try {
-        await contestApi.startContestNow(contestId);
-        setActionSuccess('Contest started immediately! Arena is now live.');
-        fetchInitialData();
-      } catch (err) {
-        console.error(err);
-        setActionError(err.response?.data?.message || 'Failed to start contest.');
-      }
     }
   };
 
@@ -237,8 +226,13 @@ export const AdminContestsPage = () => {
                   </tr>
                 ) : (
                   contests.map((c) => {
+                    const now = currentTime;
+                    const startMs = c.startTime ? Date.parse(c.startTime) : 0;
+                    const endMs = c.endTime ? Date.parse(c.endTime) : 0;
                     const isDraft = c.status === 'DRAFT';
-                    const isLive = c.status === 'LIVE';
+                    const isFinished = c.status === 'COMPLETED' || (endMs > 0 && now >= endMs);
+                    const isLive = !isDraft && !isFinished && (c.status === 'LIVE' || (startMs > 0 && now >= startMs));
+                    const isUpcoming = !isDraft && !isFinished && !isLive;
 
                     return (
                       <tr key={c.id} className="hover:bg-slate-50/70 transition-colors">
@@ -250,13 +244,13 @@ export const AdminContestsPage = () => {
                           <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold ${
                             isLive
                               ? 'bg-rose-100 text-rose-700 animate-pulse'
-                              : c.status === 'PUBLISHED'
+                              : isUpcoming
                               ? 'bg-blue-100 text-blue-700'
-                              : c.status === 'COMPLETED'
+                              : isFinished
                               ? 'bg-slate-100 text-slate-600'
                               : 'bg-amber-100 text-amber-800'
                           }`}>
-                            {c.status}
+                            {isLive ? 'LIVE' : isUpcoming ? 'PUBLISHED' : isFinished ? 'COMPLETED' : 'DRAFT'}
                           </span>
                         </td>
                         <td className="py-4 px-4 text-xs text-slate-600 font-mono">
@@ -279,17 +273,6 @@ export const AdminContestsPage = () => {
                                 className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs transition-colors shadow-sm"
                               >
                                 Publish
-                              </button>
-                            )}
-
-                            {c.status === 'PUBLISHED' && (
-                              <button
-                                onClick={() => handleStartNow(c.id)}
-                                className="px-3 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white font-semibold text-xs transition-colors shadow-sm inline-flex items-center gap-1"
-                                title="Start contest immediately before scheduled time"
-                              >
-                                <Play className="w-3 h-3 fill-current" />
-                                <span>Start Now</span>
                               </button>
                             )}
 
