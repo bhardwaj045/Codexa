@@ -306,59 +306,59 @@ export const AdminContestMonitorPage = () => {
         </div>
 
         {/* HERO MONITOR HEADER */}
-        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-slate-900 via-emerald-950 to-slate-900 text-white p-6 sm:p-8 shadow-xl border border-emerald-900/30">
+        <div className="relative overflow-hidden rounded-3xl bg-white/80 backdrop-blur-md text-slate-900 p-6 sm:p-8 shadow-sm border border-slate-400">
           <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div className="space-y-3">
               <div className="flex flex-wrap items-center gap-2.5">
                 {isLive ? (
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-rose-500/20 text-rose-400 border border-rose-500/30 animate-pulse">
-                    <span className="w-2 h-2 rounded-full bg-rose-500"></span>
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-rose-50 text-rose-700 border border-rose-200 animate-pulse">
+                    <span className="w-2 h-2 rounded-full bg-rose-600"></span>
                     LIVE MONITORING • PROCTORING ACTIVE
                   </span>
                 ) : isUpcoming ? (
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-blue-500/20 text-blue-300 border border-blue-500/30">
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-blue-50 text-blue-700 border border-blue-200">
                     <Clock className="w-3.5 h-3.5" />
                     CONTEST SCHEDULED • WAITING ROOM
                   </span>
                 ) : (
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-slate-800 text-slate-300 border border-slate-700">
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-700 border border-slate-200">
                     <CheckCircle className="w-3.5 h-3.5" />
                     CONTEST CONCLUDED • LIVE VIDEO CLOSED
                   </span>
                 )}
-                <span className="text-xs font-semibold px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300 border border-slate-700">
+                <span className="text-xs font-semibold px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 border border-slate-200">
                   ⏱ {contest.durationMinutes} Minutes Duration
                 </span>
-                <span className="text-xs font-semibold px-2.5 py-1 rounded-lg bg-rose-500/20 text-rose-300 border border-rose-500/30">
+                <span className="text-xs font-semibold px-2.5 py-1 rounded-lg bg-rose-50 text-rose-700 border border-rose-200">
                   🛡️ 5 Warnings = 1-Month Ban Policy
                 </span>
               </div>
 
-              <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
+              <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
                 {contest.title}
               </h1>
-              <p className="text-sm text-slate-300 leading-relaxed line-clamp-2">
+              <p className="text-sm text-slate-600 leading-relaxed line-clamp-2">
                 {contest.description}
               </p>
             </div>
 
             {/* LIVE COUNTDOWN CLOCK */}
-            <div className="bg-slate-800/90 rounded-2xl p-5 border border-slate-700 flex flex-col items-center justify-center shrink-0 min-w-[200px]">
-              <div className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">
-                <Clock className="w-3.5 h-3.5 text-emerald-400" />
+            <div className="bg-slate-50/80 rounded-2xl p-5 border border-slate-300 flex flex-col items-center justify-center shrink-0 min-w-[200px]">
+              <div className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">
+                <Clock className="w-3.5 h-3.5 text-[#0D684D]" />
                 <span>{isLive ? 'Time Remaining' : isUpcoming ? 'Contest Starts In' : 'Contest Ended'}</span>
               </div>
 
               {isLive ? (
-                <div className="font-mono text-3xl font-black text-emerald-400 tracking-tight">
+                <div className="font-mono text-3xl font-black text-[#0D684D] tracking-tight">
                   {timeLeft.hours.toString().padStart(2, '0')}:{timeLeft.minutes.toString().padStart(2, '0')}:{timeLeft.seconds.toString().padStart(2, '0')}
                 </div>
               ) : isUpcoming ? (
-                <div className="font-mono text-2xl font-bold text-blue-400 tracking-tight">
+                <div className="font-mono text-2xl font-bold text-blue-600 tracking-tight">
                   {startCountdown.hours.toString().padStart(2, '0')}:{startCountdown.minutes.toString().padStart(2, '0')}:{startCountdown.seconds.toString().padStart(2, '0')}
                 </div>
               ) : (
-                <div className="font-mono text-2xl font-bold text-slate-400">
+                <div className="font-mono text-2xl font-bold text-slate-500">
                   00:00:00
                 </div>
               )}
