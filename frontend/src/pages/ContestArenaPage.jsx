@@ -389,9 +389,11 @@ export const ContestArenaPage = () => {
                   ? 'Contest problem set. Admins monitor submissions and rankings (Solving is disabled).' 
                   : isUpcoming 
                   ? 'Problems will unlock automatically at the contest start time.' 
-                  : isLive
-                  ? 'Each challenge awards points upon getting Accepted • Live Proctoring Active'
-                  : 'Contest concluded. Submissions are closed.'}
+                  : isFinished
+                  ? 'Contest concluded. Problem solving and viewing are closed (Problem names listed below).'
+                  : !contest.isRegistered
+                  ? 'Registration is closed. Unregistered users can only see problem names and live leaderboard.'
+                  : 'Each challenge awards points upon getting Accepted • Live Proctoring Active'}
               </span>
             </div>
 
@@ -457,17 +459,18 @@ export const ContestArenaPage = () => {
                               >
                                 {cp.title}
                               </button>
-                            ) : isUpcoming ? (
-                              <span className="font-bold text-base text-slate-500">
-                                Challenge {cp.orderLabel} (Locked)
-                              </span>
-                            ) : (
+                            ) : isLive && contest.isRegistered ? (
                               <Link
                                 to={`/problems/${cp.problemId}?contestId=${contest.id}`}
                                 className="font-bold text-base text-slate-900 hover:text-[#0D684D] transition-colors"
                               >
                                 {cp.title}
                               </Link>
+                            ) : (
+                              // Unregistered users, finished contests, and upcoming contests CANNOT click problem link - ONLY view problem name
+                              <span className="font-bold text-base text-slate-800">
+                                {isUpcoming ? `Challenge ${cp.orderLabel} (Locked)` : cp.title}
+                              </span>
                             )}
                             {isAccepted && (
                               <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
@@ -515,15 +518,13 @@ export const ContestArenaPage = () => {
                             <span>Locked until start</span>
                           </button>
                         ) : isFinished ? (
-                          <Link
-                            to={`/problems/${cp.problemId}?contestId=${contest.id}`}
-                            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl font-semibold text-xs text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-200 transition-all shadow-xs"
-                          >
-                            <span>View Problem</span>
-                            <ExternalLink className="w-3.5 h-3.5" />
-                          </Link>
+                          // AFTER CONTEST ENDS: USERS CANNOT VIEW OR SOLVE PROBLEM (ONLY SEE PROBLEM NAME)
+                          <span className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-500 bg-slate-100 border border-slate-200">
+                            <CheckCircle className="w-3.5 h-3.5 text-slate-400" />
+                            <span>Contest Concluded</span>
+                          </span>
                         ) : !contest.isRegistered ? (
-                          // UNREGISTERED CONTESTANTS CANNOT SOLVE LIVE CHALLENGES
+                          // UNREGISTERED CONTESTANTS CANNOT VIEW OR SOLVE LIVE CHALLENGES
                           <button
                             disabled
                             className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl font-semibold text-xs text-slate-400 bg-slate-100 border border-slate-200 cursor-not-allowed"

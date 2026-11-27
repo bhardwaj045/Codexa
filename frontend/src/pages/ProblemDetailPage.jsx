@@ -368,10 +368,15 @@ export const ProblemDetailPage = () => {
     );
   }
 
-  // Strict check: if this problem is accessed in the context of a contest, contestants cannot access before start time
+  // Strict contest security guards:
   if (contest && !isAdmin) {
+    const now = Date.now();
     const contestStartMs = contest.startTime ? Date.parse(contest.startTime) : 0;
-    const isContestUpcoming = contest.status === 'PUBLISHED' || (contestStartMs > 0 && Date.now() < contestStartMs);
+    const contestEndMs = contest.endTime ? Date.parse(contest.endTime) : 0;
+    const isContestUpcoming = contestStartMs > 0 && now < contestStartMs;
+    const isContestFinished = contest.status === 'COMPLETED' || (contestEndMs > 0 && now >= contestEndMs);
+
+    // 1. Contest not started yet (Waiting Room)
     if (isContestUpcoming) {
       return (
         <div className={`h-screen flex flex-col items-center justify-center font-sans ${isDark ? 'bg-[#1A1A1A] text-white' : 'bg-[#F0F2F5] text-slate-900'} p-6 text-center space-y-6`}>
@@ -390,6 +395,54 @@ export const ProblemDetailPage = () => {
           >
             <ArrowLeft className="w-4 h-4" />
             <span>Back to Contest Waiting Room</span>
+          </Link>
+        </div>
+      );
+    }
+
+    // 2. Unregistered user: Not allowed to view or solve questions
+    if (!contest.isRegistered) {
+      return (
+        <div className={`h-screen flex flex-col items-center justify-center font-sans ${isDark ? 'bg-[#1A1A1A] text-white' : 'bg-[#F0F2F5] text-slate-900'} p-6 text-center space-y-6`}>
+          <div className="w-16 h-16 rounded-3xl bg-amber-50 text-amber-600 flex items-center justify-center mx-auto border border-amber-200 shadow-md">
+            <Lock className="w-8 h-8" />
+          </div>
+          <div className="space-y-2 max-w-md">
+            <h2 className="text-2xl font-extrabold tracking-tight">Contest Registration Required</h2>
+            <p className="text-sm text-slate-500 leading-relaxed">
+              You are not registered for "{contest.title}". Only participants who registered before the contest started are permitted to view questions and solve challenges.
+            </p>
+          </div>
+          <Link
+            to={`/contests/${contestId}`}
+            className="px-6 py-2.5 rounded-xl bg-[#0D684D] hover:bg-[#0A543E] text-white font-semibold text-sm shadow-md transition-all hover:scale-105 inline-flex items-center gap-2"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            <span>Back to Contest Arena</span>
+          </Link>
+        </div>
+      );
+    }
+
+    // 3. Contest ended: Users cannot view problem details or solve after contest ends
+    if (isContestFinished) {
+      return (
+        <div className={`h-screen flex flex-col items-center justify-center font-sans ${isDark ? 'bg-[#1A1A1A] text-white' : 'bg-[#F0F2F5] text-slate-900'} p-6 text-center space-y-6`}>
+          <div className="w-16 h-16 rounded-3xl bg-slate-100 text-slate-600 flex items-center justify-center mx-auto border border-slate-300 shadow-md">
+            <Lock className="w-8 h-8" />
+          </div>
+          <div className="space-y-2 max-w-md">
+            <h2 className="text-2xl font-extrabold tracking-tight">Contest Has Concluded</h2>
+            <p className="text-sm text-slate-500 leading-relaxed">
+              "{contest.title}" has concluded. Problem viewing and code submissions are closed after the contest ends. You can view the problem names and rankings in the contest arena.
+            </p>
+          </div>
+          <Link
+            to={`/contests/${contestId}`}
+            className="px-6 py-2.5 rounded-xl bg-[#0D684D] hover:bg-[#0A543E] text-white font-semibold text-sm shadow-md transition-all hover:scale-105 inline-flex items-center gap-2"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            <span>View Contest Arena & Results</span>
           </Link>
         </div>
       );
