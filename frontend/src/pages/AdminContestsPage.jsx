@@ -20,7 +20,8 @@ import {
   FileCode,
   Layers,
   Flame,
-  ArrowRight
+  ArrowRight,
+  Radio
 } from 'lucide-react';
 
 const POPULAR_TOPICS = [
@@ -384,13 +385,31 @@ export const AdminContestsPage = () => {
                               </button>
                             )}
 
-                            <Link
-                              to={`/admin/contests/${c.id}/monitor`}
-                              className="px-3.5 py-1.5 rounded-lg bg-[#0D684D] hover:bg-[#0A543E] text-white font-semibold text-xs transition-colors inline-flex items-center gap-1.5 shadow-xs"
-                            >
-                              <Eye className="w-3.5 h-3.5" />
-                              <span>Monitor</span>
-                            </Link>
+                            {isLive ? (
+                              <Link
+                                to={`/admin/contests/${c.id}/monitor`}
+                                className="px-3.5 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white font-semibold text-xs transition-colors inline-flex items-center gap-1.5 shadow-xs animate-pulse"
+                              >
+                                <Radio className="w-3.5 h-3.5" />
+                                <span>Live Video Monitor</span>
+                              </Link>
+                            ) : isFinished ? (
+                              <Link
+                                to={`/admin/contests/${c.id}/monitor`}
+                                className="px-3.5 py-1.5 rounded-lg bg-slate-700 hover:bg-slate-800 text-white font-semibold text-xs transition-colors inline-flex items-center gap-1.5 shadow-xs"
+                              >
+                                <Trophy className="w-3.5 h-3.5" />
+                                <span>View Results</span>
+                              </Link>
+                            ) : (
+                              <Link
+                                to={`/admin/contests/${c.id}/monitor`}
+                                className="px-3.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 font-semibold text-xs transition-colors inline-flex items-center gap-1.5 shadow-xs"
+                              >
+                                <Clock className="w-3.5 h-3.5 text-slate-500" />
+                                <span>Contest Details</span>
+                              </Link>
+                            )}
                           </div>
                         </td>
                       </tr>

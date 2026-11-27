@@ -214,19 +214,47 @@ export const ContestArenaPage = () => {
               </div>
               <div>
                 <h4 className="font-bold text-slate-900 text-sm">
-                  Administrator Monitoring Mode
+                  {isLive 
+                    ? 'Administrator Live Monitoring Mode' 
+                    : isFinished 
+                    ? 'Contest Concluded • Final Results' 
+                    : 'Contest Scheduled • Waiting Room'}
                 </h4>
                 <p className="text-xs text-slate-600">
-                  Admins organize and monitor contests; solving challenges is disabled for administrator accounts. Use the live monitoring center to watch submissions and live scoreboard.
+                  {isLive 
+                    ? 'Live contest in progress. Live video camera feeds and anti-cheat telemetry are active.'
+                    : isFinished
+                    ? 'This contest has concluded. Live video monitoring is closed. You can view final standings and code submissions.'
+                    : 'Contest is scheduled. Live video proctoring will start automatically once the contest begins.'}
                 </p>
               </div>
             </div>
             <Link
               to={`/admin/contests/${contest.id}/monitor`}
-              className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-[#0D684D] hover:bg-[#0A543E] text-white font-bold text-xs shadow-sm transition-all shrink-0 hover:scale-105"
+              className={`inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-white font-bold text-xs shadow-sm transition-all shrink-0 hover:scale-105 ${
+                isLive 
+                  ? 'bg-rose-600 hover:bg-rose-700 animate-pulse' 
+                  : isFinished 
+                  ? 'bg-slate-700 hover:bg-slate-800' 
+                  : 'bg-[#0D684D] hover:bg-[#0A543E]'
+              }`}
             >
-              <Radio className="w-3.5 h-3.5 text-emerald-300 animate-pulse" />
-              <span>Open Live Monitor</span>
+              {isLive ? (
+                <>
+                  <Radio className="w-3.5 h-3.5 text-white" />
+                  <span>Open Live Video Monitor</span>
+                </>
+              ) : isFinished ? (
+                <>
+                  <Trophy className="w-3.5 h-3.5 text-white" />
+                  <span>View Final Results</span>
+                </>
+              ) : (
+                <>
+                  <Clock className="w-3.5 h-3.5 text-white" />
+                  <span>Waiting Room Details</span>
+                </>
+              )}
             </Link>
           </div>
         )}

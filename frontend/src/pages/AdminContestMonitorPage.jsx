@@ -44,7 +44,7 @@ export const AdminContestMonitorPage = () => {
   const [contest, setContest] = useState(null);
   const [leaderboard, setLeaderboard] = useState([]);
   const [submissions, setSubmissions] = useState([]);
-  const [activeTab, setActiveTab] = useState('PROCTORING'); // PROCTORING, LEADERBOARD, SUBMISSIONS, PROBLEMS
+  const [activeTab, setActiveTab] = useState('LEADERBOARD'); // LEADERBOARD, PROCTORING, SUBMISSIONS, AUDIT, PROBLEMS
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [autoRefresh, setAutoRefresh] = useState(true);
@@ -53,6 +53,7 @@ export const AdminContestMonitorPage = () => {
   const [proctoringFilter, setProctoringFilter] = useState('ALL'); // ALL, FLAGGED, BANNED, CLEAN
   const [copied, setCopied] = useState(false);
   const [timeLeft, setTimeLeft] = useState({ hours: 0, minutes: 0, seconds: 0, isFinished: false });
+  const [startCountdown, setStartCountdown] = useState({ hours: 0, minutes: 0, seconds: 0 });
   const [proctoringUpdateTick, setProctoringUpdateTick] = useState(0);
 
   useEffect(() => {
@@ -76,19 +77,36 @@ export const AdminContestMonitorPage = () => {
     return () => clearInterval(pollInterval);
   }, [id, autoRefresh]);
 
-  // Live ticking countdown timer
+  // Live ticking countdown timer for contest start & end
   useEffect(() => {
-    if (!contest?.endTime) return;
+    if (!contest) return;
     const updateTimer = () => {
-      const total = Date.parse(contest.endTime) - Date.now();
-      if (total <= 0) {
-        setTimeLeft({ hours: 0, minutes: 0, seconds: 0, isFinished: true });
-        return;
+      const now = Date.now();
+      const startMs = contest.startTime ? Date.parse(contest.startTime) : 0;
+      const endMs = contest.endTime ? Date.parse(contest.endTime) : 0;
+
+      // Start countdown
+      if (startMs > now) {
+        const diff = startMs - now;
+        setStartCountdown({
+          hours: Math.floor(diff / (1000 * 60 * 60)),
+          minutes: Math.floor((diff / 1000 / 60) % 60),
+          seconds: Math.floor((diff / 1000) % 60)
+        });
       }
-      const seconds = Math.floor((total / 1000) % 60);
-      const minutes = Math.floor((total / 1000 / 60) % 60);
-      const hours = Math.floor((total / (1000 * 60 * 60)));
-      setTimeLeft({ hours, minutes, seconds, isFinished: false });
+
+      // End countdown
+      if (endMs > 0) {
+        const total = endMs - now;
+        if (total <= 0) {
+          setTimeLeft({ hours: 0, minutes: 0, seconds: 0, isFinished: true });
+        } else {
+          const seconds = Math.floor((total / 1000) % 60);
+          const minutes = Math.floor((total / 1000 / 60) % 60);
+          const hours = Math.floor((total / (1000 * 60 * 60)));
+          setTimeLeft({ hours, minutes, seconds, isFinished: false });
+        }
+      }
     };
     updateTimer();
     const interval = setInterval(updateTimer, 1000);
@@ -239,11 +257,17 @@ export const AdminContestMonitorPage = () => {
     );
   }
 
-  const isLive = contest.status === 'LIVE' && !timeLeft.isFinished;
+  const now = Date.now();
+  const startMs = contest.startTime ? Date.parse(contest.startTime) : 0;
+  const endMs = contest.endTime ? Date.parse(contest.endTime) : 0;
+  const isDraft = contest.status === 'DRAFT';
+  const isFinished = contest.status === 'COMPLETED' || (endMs > 0 && now >= endMs) || timeLeft.isFinished;
+  const isLive = !isDraft && !isFinished && (contest.status === 'LIVE' || (startMs > 0 && now >= startMs));
+  const isUpcoming = !isDraft && !isFinished && !isLive;
   const acceptedCount = submissions.filter(s => s.submissionStatus === 'ACCEPTED').length;
 
   return (
-    <AppLayout title="Contest Monitoring">
+    <AppLayout title={isLive ? "Contest Live Monitoring" : isFinished ? "Contest Final Results & Audit" : "Contest Waiting Room"}>
       <div className="max-w-6xl mx-auto space-y-6 pb-16">
         {/* TOP NAVIGATION BREADCRUMB & CONTROLS */}
         <div className="flex flex-wrap items-center justify-between gap-4">
@@ -291,10 +315,15 @@ export const AdminContestMonitorPage = () => {
                     <span className="w-2 h-2 rounded-full bg-rose-500"></span>
                     LIVE MONITORING • PROCTORING ACTIVE
                   </span>
+                ) : isUpcoming ? (
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-blue-500/20 text-blue-300 border border-blue-500/30">
+                    <Clock className="w-3.5 h-3.5" />
+                    CONTEST SCHEDULED • WAITING ROOM
+                  </span>
                 ) : (
                   <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-slate-800 text-slate-300 border border-slate-700">
                     <CheckCircle className="w-3.5 h-3.5" />
-                    CONTEST FINISHED
+                    CONTEST CONCLUDED • LIVE VIDEO CLOSED
                   </span>
                 )}
                 <span className="text-xs font-semibold px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300 border border-slate-700">
@@ -317,12 +346,16 @@ export const AdminContestMonitorPage = () => {
             <div className="bg-slate-800/90 rounded-2xl p-5 border border-slate-700 flex flex-col items-center justify-center shrink-0 min-w-[200px]">
               <div className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">
                 <Clock className="w-3.5 h-3.5 text-emerald-400" />
-                <span>{isLive ? 'Time Remaining' : 'Contest Ended'}</span>
+                <span>{isLive ? 'Time Remaining' : isUpcoming ? 'Contest Starts In' : 'Contest Ended'}</span>
               </div>
 
               {isLive ? (
                 <div className="font-mono text-3xl font-black text-emerald-400 tracking-tight">
                   {timeLeft.hours.toString().padStart(2, '0')}:{timeLeft.minutes.toString().padStart(2, '0')}:{timeLeft.seconds.toString().padStart(2, '0')}
+                </div>
+              ) : isUpcoming ? (
+                <div className="font-mono text-2xl font-bold text-blue-400 tracking-tight">
+                  {startCountdown.hours.toString().padStart(2, '0')}:{startCountdown.minutes.toString().padStart(2, '0')}:{startCountdown.seconds.toString().padStart(2, '0')}
                 </div>
               ) : (
                 <div className="font-mono text-2xl font-bold text-slate-400">
@@ -336,9 +369,17 @@ export const AdminContestMonitorPage = () => {
         {/* 4 SUMMARY STAT CARDS */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
           <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-xs space-y-1">
-            <p className="text-xs font-bold uppercase tracking-wider text-slate-400">Monitored Contestants</p>
+            <p className="text-xs font-bold uppercase tracking-wider text-slate-400">
+              {isLive ? 'Monitored Contestants' : 'Total Contestants'}
+            </p>
             <p className="text-2xl font-extrabold text-slate-900">{allContestants.length}</p>
-            <p className="text-[11px] text-slate-500 font-medium">{allContestants.length} active live video feeds</p>
+            <p className="text-[11px] text-slate-500 font-medium">
+              {isLive 
+                ? `${allContestants.length} active live video feeds` 
+                : isFinished 
+                ? 'Video feeds terminated' 
+                : 'Awaiting contest start'}
+            </p>
           </div>
 
           <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-xs space-y-1">
@@ -363,15 +404,23 @@ export const AdminContestMonitorPage = () => {
         {/* NAVIGATION TABS */}
         <div className="flex items-center gap-2 border-b border-slate-200">
           {[
-            { 
+            // ONLY show live video proctoring option when contest is actively LIVE!
+            ...(isLive ? [{ 
               id: 'PROCTORING', 
               label: 'Contestant Live Video & Proctoring', 
               icon: Video, 
               count: allContestants.length,
               badge: bannedContestants.length > 0 ? `${bannedContestants.length} Blocked` : null 
-            },
-            { id: 'LEADERBOARD', label: 'Live Leaderboard', icon: Trophy, count: leaderboard.length },
-            { id: 'SUBMISSIONS', label: 'Real-Time Submissions Feed', icon: Send, count: submissions.length },
+            }] : []),
+            { id: 'LEADERBOARD', label: isFinished ? 'Final Leaderboard' : 'Live Leaderboard', icon: Trophy, count: leaderboard.length },
+            { id: 'SUBMISSIONS', label: isFinished ? 'Submissions Archive' : 'Real-Time Submissions Feed', icon: Send, count: submissions.length },
+            // After contest ends, replace live video monitoring with Post-Contest Anti-Cheat Audit Trail (without video feeds)
+            ...(isFinished ? [{
+              id: 'AUDIT',
+              label: 'Anti-Cheat Audit Trail',
+              icon: ShieldCheck,
+              count: allContestants.filter(c => c.warningsCount > 0 || c.isBanned).length
+            }] : []),
             { id: 'PROBLEMS', label: 'Assigned Problems', icon: Code2, count: contest.problems?.length || 0 },
           ].map((tab) => {
             const Icon = tab.icon;
@@ -405,8 +454,8 @@ export const AdminContestMonitorPage = () => {
           })}
         </div>
 
-        {/* TAB 1: LIVE PROCTORING & CONTESTANT VIDEO FEEDS */}
-        {activeTab === 'PROCTORING' && (
+        {/* TAB 1: LIVE PROCTORING & CONTESTANT VIDEO FEEDS (ONLY ACTIVE WHEN LIVE) */}
+        {isLive && activeTab === 'PROCTORING' && (
           <div className="space-y-6">
             {/* STRICT ANTI-CHEAT POLICY BANNER */}
             <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 text-white flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-md">
@@ -874,7 +923,9 @@ export const AdminContestMonitorPage = () => {
         {activeTab === 'SUBMISSIONS' && (
           <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
             <div className="px-6 py-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
-              <h3 className="font-bold text-slate-800 text-sm">Real-Time Submissions Feed</h3>
+              <h3 className="font-bold text-slate-800 text-sm">
+                {isFinished ? 'Submissions Archive' : 'Real-Time Submissions Feed'}
+              </h3>
               <span className="text-xs text-slate-500">{submissions.length} Total Submissions</span>
             </div>
 
@@ -955,7 +1006,84 @@ export const AdminContestMonitorPage = () => {
           </div>
         )}
 
-        {/* TAB 4: CONTEST PROBLEMS */}
+        {/* TAB 4: ANTI-CHEAT AUDIT TRAIL (POST-CONTEST ARCHIVE - NO LIVE VIDEO FEEDS) */}
+        {isFinished && activeTab === 'AUDIT' && (
+          <div className="space-y-6">
+            <div className="p-4 rounded-2xl bg-slate-100 border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-emerald-100 text-[#0D684D] border border-emerald-200 flex items-center justify-center shrink-0">
+                  <ShieldCheck className="w-5 h-5" />
+                </div>
+                <div>
+                  <h4 className="font-bold text-sm text-slate-900">Post-Contest Anti-Cheat Audit Trail</h4>
+                  <p className="text-xs text-slate-600">
+                    Live camera video feeds are closed following contest completion. Permanent record of all telemetry warnings and actions logged during the contest session.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs">
+              <div className="px-6 py-4 bg-slate-50 border-b border-slate-200 font-bold text-sm text-slate-800 flex items-center justify-between">
+                <span>Contestant Security Warnings & Violations</span>
+                <span className="text-xs text-slate-500 font-normal">
+                  {allContestants.filter(c => c.warningsCount > 0 || c.isBanned).length} flagged contestants
+                </span>
+              </div>
+              <div className="divide-y divide-slate-100 text-sm">
+                {allContestants.filter(c => c.warningsCount > 0 || c.isBanned).length === 0 ? (
+                  <div className="p-12 text-center text-slate-500 space-y-2">
+                    <CheckCircle className="w-10 h-10 text-emerald-500 mx-auto" />
+                    <p className="font-bold text-slate-700">Clean Contest Session</p>
+                    <p className="text-xs">No anti-cheat warnings, window blur, or clipboard violations were logged during this contest.</p>
+                  </div>
+                ) : (
+                  allContestants
+                    .filter(c => c.warningsCount > 0 || c.isBanned)
+                    .map((student) => (
+                      <div key={student.userId} className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-slate-50/70 transition-colors">
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <span className="font-bold text-slate-900 text-base">{student.userName}</span>
+                            <span className="text-xs font-mono text-slate-400">ID #{student.userId}</span>
+                            {student.isBanned ? (
+                              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-800 border border-rose-200">
+                                ⛔ 1-MONTH BAN
+                              </span>
+                            ) : (
+                              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200">
+                                ⚠️ FLAGGED
+                              </span>
+                            )}
+                          </div>
+                          <div className="mt-2.5 space-y-1.5 pl-1">
+                            {student.warnings?.map((w, wIdx) => (
+                              <div key={w.id || wIdx} className="text-xs text-slate-600 font-mono flex items-start gap-2">
+                                <span className="text-rose-600 font-bold shrink-0">[{w.time || 'Alert'}]</span>
+                                <span>{w.reason}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+
+                        <div className="text-right shrink-0">
+                          <span className={`text-xs font-bold px-3 py-1.5 rounded-xl border ${
+                            student.isBanned 
+                              ? 'bg-rose-50 text-rose-800 border-rose-200' 
+                              : 'bg-amber-50 text-amber-800 border-amber-200'
+                          }`}>
+                            {student.warningsCount} / 5 Warnings
+                          </span>
+                        </div>
+                      </div>
+                    ))
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* TAB 5: CONTEST PROBLEMS */}
         {activeTab === 'PROBLEMS' && (
           <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
             <div className="px-6 py-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
@@ -999,8 +1127,8 @@ export const AdminContestMonitorPage = () => {
           </div>
         )}
 
-        {/* MODAL: FULLSCREEN LIVE WEBCAM VIDEO STREAM DIALOG (Rendered at document.body for full-screen edge-to-edge blur) */}
-        {selectedLiveStudent && createPortal(
+        {/* MODAL: FULLSCREEN LIVE WEBCAM VIDEO STREAM DIALOG (Rendered at document.body for full-screen edge-to-edge blur, strictly while contest is LIVE) */}
+        {selectedLiveStudent && isLive && createPortal(
           <div className="fixed inset-0 z-[9999] bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in zoom-in-95 duration-150">
             <div className="bg-slate-900 rounded-3xl max-w-2xl w-full border border-slate-800 shadow-2xl overflow-hidden flex flex-col text-white">
               {/* Modal Header */}
