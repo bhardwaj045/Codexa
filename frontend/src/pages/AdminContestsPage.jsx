@@ -451,7 +451,8 @@ export const AdminContestsPage = () => {
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
                     placeholder="e.g. CodeXa Weekly Sprint #2"
-                    className="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm"
+                    style={{ color: '#0f172a', backgroundColor: '#ffffff', opacity: 1 }}
+                    className="w-full px-4 py-2.5 rounded-xl border border-slate-300 bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm font-semibold"
                   />
                 </div>
 
@@ -464,7 +465,8 @@ export const AdminContestsPage = () => {
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                     placeholder="Brief description of the contest rules and topics..."
-                    className="w-full px-4 py-2 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm"
+                    style={{ color: '#0f172a', backgroundColor: '#ffffff', opacity: 1 }}
+                    className="w-full px-4 py-2 rounded-xl border border-slate-300 bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm"
                   />
                 </div>
 
@@ -478,7 +480,8 @@ export const AdminContestsPage = () => {
                       required
                       value={startTime}
                       onChange={(e) => setStartTime(e.target.value)}
-                      className="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm font-mono"
+                      style={{ color: '#0f172a', backgroundColor: '#ffffff', opacity: 1 }}
+                      className="w-full px-4 py-2.5 rounded-xl border border-slate-300 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm font-mono"
                     />
                   </div>
 
@@ -491,7 +494,8 @@ export const AdminContestsPage = () => {
                       required
                       value={durationMinutes}
                       onChange={(e) => setDurationMinutes(e.target.value)}
-                      className="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm font-mono"
+                      style={{ color: '#0f172a', backgroundColor: '#ffffff', opacity: 1 }}
+                      className="w-full px-4 py-2.5 rounded-xl border border-slate-300 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm font-mono"
                     />
                     <p className="text-[11px] text-slate-500 mt-1">Contest duration in minutes (e.g. 120)</p>
                   </div>
@@ -661,7 +665,8 @@ export const AdminContestsPage = () => {
                       value={probTitle}
                       onChange={(e) => setProbTitle(e.target.value)}
                       placeholder="e.g. Invert Binary Tree"
-                      className="w-full px-3.5 py-2 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm"
+                      style={{ color: '#0f172a', backgroundColor: '#ffffff', opacity: 1 }}
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm font-semibold"
                     />
                   </div>
                   <div>
@@ -671,12 +676,37 @@ export const AdminContestsPage = () => {
                     <select
                       value={probDifficulty}
                       onChange={(e) => setProbDifficulty(e.target.value)}
-                      className="w-full px-3.5 py-2 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm font-semibold"
+                      style={{ color: '#0f172a', backgroundColor: '#ffffff', opacity: 1 }}
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white text-slate-900 font-bold text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
                     >
-                      <option value="EASY">EASY</option>
-                      <option value="MEDIUM">MEDIUM</option>
-                      <option value="HARD">HARD</option>
+                      <option value="EASY" style={{ color: '#0f172a', backgroundColor: '#ffffff' }} className="text-slate-900 bg-white font-bold py-1">EASY</option>
+                      <option value="MEDIUM" style={{ color: '#0f172a', backgroundColor: '#ffffff' }} className="text-slate-900 bg-white font-bold py-1">MEDIUM</option>
+                      <option value="HARD" style={{ color: '#0f172a', backgroundColor: '#ffffff' }} className="text-slate-900 bg-white font-bold py-1">HARD</option>
                     </select>
+                  </div>
+                </div>
+
+                {/* Difficulty Quick Buttons */}
+                <div>
+                  <div className="grid grid-cols-3 gap-2">
+                    {[
+                      { id: 'EASY', label: 'EASY', activeClass: 'bg-emerald-100 text-emerald-950 border-emerald-500 ring-2 ring-emerald-500/20' },
+                      { id: 'MEDIUM', label: 'MEDIUM', activeClass: 'bg-amber-100 text-amber-950 border-amber-500 ring-2 ring-amber-500/20' },
+                      { id: 'HARD', label: 'HARD', activeClass: 'bg-rose-100 text-rose-950 border-rose-500 ring-2 ring-rose-500/20' },
+                    ].map((d) => (
+                      <button
+                        key={d.id}
+                        type="button"
+                        onClick={() => setProbDifficulty(d.id)}
+                        className={`py-1.5 px-3 rounded-lg border text-xs font-bold transition-all text-center ${
+                          probDifficulty === d.id
+                            ? d.activeClass
+                            : 'bg-white border-slate-300 text-slate-800 hover:bg-slate-50 hover:border-slate-400'
+                        }`}
+                      >
+                        {d.label}
+                      </button>
+                    ))}
                   </div>
                 </div>
 
@@ -694,7 +724,7 @@ export const AdminContestsPage = () => {
                         className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-all ${
                           probTopic === t
                             ? 'bg-[#0D684D] text-white shadow-xs'
-                            : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+                            : 'bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200'
                         }`}
                       >
                         {t}
@@ -706,7 +736,8 @@ export const AdminContestsPage = () => {
                     value={probTopic}
                     onChange={(e) => setProbTopic(e.target.value)}
                     placeholder="Or enter custom topic"
-                    className="w-full px-3.5 py-1.5 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 text-xs"
+                    style={{ color: '#0f172a', backgroundColor: '#ffffff', opacity: 1 }}
+                    className="w-full px-3.5 py-2 rounded-lg border border-slate-300 bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 text-xs font-medium"
                   />
                 </div>
 
@@ -721,7 +752,8 @@ export const AdminContestsPage = () => {
                     value={probDescription}
                     onChange={(e) => setProbDescription(e.target.value)}
                     placeholder="Explain the problem statement, inputs, and expected task clearly..."
-                    className="w-full px-3.5 py-2 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm leading-relaxed"
+                    style={{ color: '#0f172a', backgroundColor: '#ffffff', opacity: 1 }}
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm leading-relaxed font-normal"
                   />
                 </div>
 
@@ -735,7 +767,8 @@ export const AdminContestsPage = () => {
                     value={probConstraints}
                     onChange={(e) => setProbConstraints(e.target.value)}
                     placeholder="e.g. 1 <= nums.length <= 10^5, -10^4 <= nums[i] <= 10^4"
-                    className="w-full px-3.5 py-2 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-mono text-xs"
+                    style={{ color: '#0f172a', backgroundColor: '#ffffff', opacity: 1 }}
+                    className="w-full px-3.5 py-2 rounded-xl border border-slate-300 bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-mono text-xs"
                   />
                 </div>
 
@@ -750,7 +783,8 @@ export const AdminContestsPage = () => {
                       value={probSampleInput}
                       onChange={(e) => setProbSampleInput(e.target.value)}
                       placeholder="e.g. [2,7,11,15], target = 9"
-                      className="w-full px-3 py-1.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-mono text-xs"
+                      style={{ color: '#0f172a', backgroundColor: '#ffffff', opacity: 1 }}
+                      className="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-mono text-xs"
                     />
                   </div>
                   <div>
@@ -762,7 +796,8 @@ export const AdminContestsPage = () => {
                       value={probSampleOutput}
                       onChange={(e) => setProbSampleOutput(e.target.value)}
                       placeholder="e.g. [0,1]"
-                      className="w-full px-3 py-1.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-mono text-xs"
+                      style={{ color: '#0f172a', backgroundColor: '#ffffff', opacity: 1 }}
+                      className="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-mono text-xs"
                     />
                   </div>
                 </div>
@@ -777,7 +812,8 @@ export const AdminContestsPage = () => {
                     value={probStarterCode}
                     onChange={(e) => setProbStarterCode(e.target.value)}
                     placeholder="class Solution:\n    def solve(self, ...):"
-                    className="w-full px-3 py-2 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-mono text-xs"
+                    style={{ color: '#10b981', backgroundColor: '#0f172a', opacity: 1 }}
+                    className="w-full px-3 py-2 rounded-xl border border-slate-300 bg-slate-900 text-emerald-400 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-mono text-xs"
                   />
                 </div>
 
